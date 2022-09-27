@@ -1,3 +1,5 @@
+var $ = require('jquery');
+
 const { ipcRenderer } = require('electron');
 const ipc = ipcRenderer;
 

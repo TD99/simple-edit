@@ -1,0 +1,13 @@
+<h1>Hello World</h1>
+<div id="mainEditorDiv"></div>
+<script>
+    const monaco = require('wc-monaco-editor')
+    var mainEditor = monaco.editor.create(document.getElementById('mainEditorDiv'), {
+        value: '',
+        language: 'javascript',
+        lineNumbers: 'on',
+        scrollBeyoundLastLine: false,
+        readOnly: false,
+        theme: 'vs-dark'
+    });
+</script>

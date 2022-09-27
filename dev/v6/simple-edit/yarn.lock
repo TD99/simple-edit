@@ -470,6 +470,11 @@
   dependencies:
     "@types/node" "*"
 
+"@vanillawc/wc-monaco-editor@^1.10.15":
+  "integrity" "sha512-A0PgAPoFxe1JqRyKHKyVdYYJLE8vivxC3EAQ5o4vV429AHeJNl0qRdC0U/8IUL3OwGBqAgQT32lUxT4iCIY29A=="
+  "resolved" "https://registry.npmjs.org/@vanillawc/wc-monaco-editor/-/wc-monaco-editor-1.10.15.tgz"
+  "version" "1.10.15"
+
 "abbrev@1":
   "integrity" "sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q=="
   "resolved" "https://registry.npmjs.org/abbrev/-/abbrev-1.1.1.tgz"

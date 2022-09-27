@@ -1,16 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html style="width: 100%; height: 100%;">
   <head>
     <title>Main</title>
     <link rel="stylesheet" href="./css/index.css">
+    <script>
+      
+    </script>
+    <script type="module" src="node_modules/@vanillawc/wc-monaco-editor/index.js"></script>
+    <script defer src="./js/script.js"></script>
+    <script>
+      const fs = require('fs');
+      const path = require('path');
+
+      function pathExists(objectPath){
+        try{ fs.accessSync(path.resolve(__dirname, objectPath), fs.constants.F_OK); }
+        catch(e){ return false; }
+        return true;
+      }
+
+      // CustomTag 'external-html'
+      customElements.define('external-html', class extends HTMLElement {
+        static observedAttributes = ['href'];
+        constructor() {
+          super();
+        }
+        connectedCallback() {
+          this.innerHTML = '';
+          var href = path.resolve(__dirname, this.getAttribute("href"));
+          if (href){
+            if (pathExists(href)){
+              if (fs.lstatSync(href).isFile()){
+                fs.readFile(href, 'utf8', (err, data) => {
+                  if (err){
+                    console.error(err);
+                    return;
+                  }
+                  this.innerHTML = data;
+                });
+              } else {
+                this.innerHTML = "Error: The specified path is not a file.";
+              }
+            } else {
+              this.innerHTML = "Error: The specified path does not exist.";
+            }
+          } else{
+            this.innerHTML = 'Error: No href-attribute was specified.';
+          }
+          alert("Load");
+        }
+        attributeChangedCallback() {
+          this.connectedCallback();
+          alert("attrChanged");
+        }
+      });
+    </script>
   </head>
-  <body>
-    <div class="mainApp">
+  <body style="width: 100%; height: 100%;">
+    <div class="mainApp" style="width: 100%; height: 100%;">
       <div class="topBar">
         <div class="titleBar">
           <button id="showHideMenus" class="toggleButton"></button>
           <div class="title">
-            My App Title
+            simpleEdit
           </div>
         </div>
         <div class="titleBarButtons">
@@ -19,15 +70,14 @@
           <button class="topButton closeButton">X</button>
         </div>
       </div>
-      <div class="contentArea">
-        <div id="mySidebar" class="leftMenu">
+      <main style="width: 100%; height: 100%; background-color: white;">
+        <external-html href="./home/index.html">
 
-        </div>
-        <div class="contentPages">
-          
-        </div>
-      </div>
+        </external-html>
+        <object data="./home/index.html"> 
+          Your browser doesn't support the object tag. 
+        </object>
+      </main>
     </div>
-    <script src="./js/script.js"></script>
   </body>
 </html>

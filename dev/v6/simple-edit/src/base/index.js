@@ -17,6 +17,7 @@ const createWindow = () => {
     width: 800,
     height: 600,
     frame: false,
+    transparent: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -33,7 +34,11 @@ const createWindow = () => {
   });
 
   ipc.on('maximizeApp', ()=>{
-    mainWindow.maximize();
+    if (mainWindow.isMaximized()){
+      mainWindow.unmaximize();
+    } else{
+      mainWindow.maximize();
+    }
   });
 
   ipc.on('closeApp', ()=>{
@@ -64,4 +69,4 @@ app.on('activate', () => {
 });
 
 // In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
+// code. You can also put them in separate files and import them here
