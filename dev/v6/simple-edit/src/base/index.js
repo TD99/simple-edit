@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const interfaceDir = __dirname + "/../interface";
+const componentDir = __dirname + "/../components";
+const extensionDir = __dirname + "/../extensions";
 const ipc = ipcMain;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -17,7 +18,7 @@ const createWindow = () => {
     width: 800,
     height: 600,
     frame: false,
-    transparent: true,
+    transparent: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -27,7 +28,7 @@ const createWindow = () => {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(interfaceDir, 'index.html'));
+  mainWindow.loadFile(path.join(componentDir, 'main/index.html'));
 
   ipc.on('minimizeApp', ()=>{
     mainWindow.minimize();
@@ -43,6 +44,10 @@ const createWindow = () => {
 
   ipc.on('closeApp', ()=>{
     mainWindow.close();
+  });
+
+  ipc.on('devTools', ()=>{
+    mainWindow.webContents.openDevTools();
   });
 };
 

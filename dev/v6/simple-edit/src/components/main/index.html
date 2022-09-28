@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <title>mainApp</title>
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="../../extensions/fontawesome/css/all.min.css">
+    <script type="module" src="../../../node_modules/@vanillawc/wc-monaco-editor/index.js"></script>
+    <script defer src="./script.js"></script>
+    <script src="../../extensions/external-html.js"></script>
+  </head>
+  <body>
+    <div class="mainApp">
+      <header class="topBar drag">
+        <div class="clearDiv">
+          <div class="appIcon drag" style="background-color: white; margin-right: 8px;"></div>
+          <div class="menuStrip drag">
+            <div class="menuDropdown">
+              <span class="menuDropdownTitle">Datei</span>
+              <div class="menuDropdownContent">
+                <span>Öffnen</span>
+                <span>Neue Datei</span>
+                <span class="ipcClose">Beenden</span>
+              </div>
+            </div>
+            <div class="menuDropdown">
+              <span class="menuDropdownTitle">Bearbeiten</span>
+              <div class="menuDropdownContent">
+                <span onclick="$('.search').focus();">Suchen</span>
+              </div>
+            </div>
+            <div class="menuDropdown">
+              <span class="menuDropdownTitle">Hilfe</span>
+              <div class="menuDropdownContent">
+                <span class="ipcDevTools">Entwickleroptionen</span>
+                <span onclick="location.reload();">Neu laden</span>
+                <span>Über simpleEdit</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="clearDiv searchDiv">
+          <i class="searchIcon fa-solid fa-language"></i>
+          <select name="lang" id="lang" class="search">
+            <option value="text" selected>Plain Text</option>
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+          </select>
+          <!--<input class="search" type="text" placeholder="Suchen (CTRL + F)" list="languages">-->
+        </div>
+        <div class="clearDiv">
+          <div class="titleBarButtons" style="height: 30px;">
+            <button class="windowControlButton ipcMinimize"><i class="fa-solid fa-minus"></i></button>
+            <button class="windowControlButton ipcMaximize"><i class="fa-regular fa-square"></i></button>
+            <button class="windowControlButton ipcClose"><i class="fa-regular fa-x"></i></button>
+          </div>
+        </div>
+      </header>
+      <main style="width: 100%; height: 100%;">
+        <div id="mainEditor" style="width: 100%; height: 100%;"></div>
+      </main>
+    </div>
+  </body>
+</html>

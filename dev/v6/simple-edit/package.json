@@ -12,6 +12,7 @@
     "lint": "echo \"No linting configured\""
   },
   "keywords": [],
+  "type": "commonjs",
   "author": {
     "name": "tim",
     "email": "tdu135585@stud.gibb.ch"
@@ -48,6 +49,7 @@
     "@vanillawc/wc-monaco-editor": "^1.10.15",
     "electron-squirrel-startup": "^1.0.0",
     "jquery": "^3.6.1",
+    "node-powershell": "^5.0.1",
     "tailwind": "^4.0.0"
   },
   "devDependencies": {
