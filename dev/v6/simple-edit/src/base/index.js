@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const componentDir = __dirname + "/../components";
 const extensionDir = __dirname + "/../extensions";
@@ -48,6 +48,14 @@ const createWindow = () => {
 
   ipc.on('devTools', ()=>{
     mainWindow.webContents.openDevTools();
+  });
+
+  ipc.on('openFileDlg', (opt)=>{
+    dialog.showOpenDialog(opt);
+  });
+
+  ipc.on('openExtURL', (event, data) => {
+    require('electron').shell.openExternal(data);
   });
 };
 

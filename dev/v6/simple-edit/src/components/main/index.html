@@ -12,39 +12,39 @@
     <div class="mainApp">
       <header class="topBar drag">
         <div class="clearDiv">
-          <div class="appIcon drag" style="background-color: white; margin-right: 8px;"></div>
+          <img class="appIcon drag" style="margin-right: 8px;" src="../../assets/icons/icon.svg"></img>
           <div class="menuStrip drag">
             <div class="menuDropdown">
-              <span class="menuDropdownTitle">Datei</span>
+              <span class="menuDropdownTitle">File</span>
               <div class="menuDropdownContent">
-                <span>Öffnen</span>
-                <span>Neue Datei</span>
-                <span class="ipcClose">Beenden</span>
+                <span>Open File</span>
+                <span>New File</span>
+                <span class="ipcClose">Exit simpleEdit</span>
               </div>
             </div>
             <div class="menuDropdown">
-              <span class="menuDropdownTitle">Bearbeiten</span>
+              <span class="menuDropdownTitle">Edit</span>
               <div class="menuDropdownContent">
-                <span onclick="$('.search').focus();">Suchen</span>
+                <span onclick="$('.search').focus();">Change Language</span>
               </div>
             </div>
             <div class="menuDropdown">
-              <span class="menuDropdownTitle">Hilfe</span>
+              <span class="menuDropdownTitle">Help</span>
               <div class="menuDropdownContent">
-                <span class="ipcDevTools">Entwickleroptionen</span>
-                <span onclick="location.reload();">Neu laden</span>
-                <span>Über simpleEdit</span>
+                <span class="ipcDevTools">Open Developer Tools</span>
+                <span onclick="location.reload();">Reload</span>
+                <span>About simpleEdit</span>
               </div>
             </div>
           </div>
         </div>
         <div class="clearDiv searchDiv">
           <i class="searchIcon fa-solid fa-language"></i>
-          <select name="lang" id="lang" class="search">
+          <select class="search">
             <option value="text" selected>Plain Text</option>
-            <option value="javascript">JavaScript</option>
-            <option value="python">Python</option>
           </select>
+          <i class="searchIcon docsIcon fa-solid fa-book"></i>
+          <i class="searchIcon learnIcon fa-solid fa-graduation-cap"></i>
           <!--<input class="search" type="text" placeholder="Suchen (CTRL + F)" list="languages">-->
         </div>
         <div class="clearDiv">
@@ -58,6 +58,29 @@
       <main style="width: 100%; height: 100%;">
         <div id="mainEditor" style="width: 100%; height: 100%;"></div>
       </main>
+      <footer class="bottomBar">
+        <div id="languageDiv" style="height: 100%;">
+          <select class="langData">
+            <option>{langData}</option>
+          </select>
+          <i class="docsIcon fa-solid fa-book"></i>
+          <i class="learnIcon fa-solid fa-graduation-cap"></i>
+        </div>
+        <div id="documentControlDiv">
+          <select class="lineData">
+            <option>{lineData}</option>
+          </select>
+          <select class="spaceData">
+            <option>{spaceData}</option>
+          </select>
+          <select class="encodingData">
+            <option>{encodingData}</option>
+          </select>
+          <select class="eolData">
+            <option>{eolData}</option>
+          </select>
+        </div>
+      </footer>
     </div>
   </body>
 </html>

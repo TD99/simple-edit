@@ -77,11 +77,6 @@ html, body{
   height: 100%;
 }
 
-.searchIcon{
-  color: #474B56;
-  font-weight: 700;
-}
-
 .search{
   background: none;
   outline: none;
@@ -91,6 +86,7 @@ html, body{
   width: 100%;
   padding: 0;
   margin: 0;
+  display: none;
 }
 
 .searchDiv{
@@ -101,6 +97,7 @@ html, body{
   align-items: center;
   box-sizing: border-box;
   gap: 5px;
+  display: none;
 }
 
 .searchDiv:hover{
@@ -147,4 +144,38 @@ html, body{
 
 .menuDropdownContent span:hover{
   background-color: rgba(255, 255, 255, 0.2);
+}
+
+.docsIcon, .learnIcon{
+  display: none;
+}
+
+.bottomBar{
+  height: 30px;
+  font-size: 10pt;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  padding: 0 9px;
+  background: rgba(27, 29, 35, 0.8);
+  color: #BABFC8;
+}
+
+.bottomBar i .fa-solid{
+  font-weight: 700;
+}
+
+.bottomBar select{
+  color: inherit;
+  background: none;
+  outline: none;
+  border: none;
+  height: 100%;
+  appearance: none;
+  padding: 5px;
+}
+
+.bottomBar select:hover{
+  background-color: rgba(255, 255, 255, 0.1);
 }
