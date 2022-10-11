@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <title>mainApp</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline' file:; style-src 'unsafe-inline' file:; font-src file:"/>
+    <link rel="stylesheet" href="../../extensions/global.css">
     <link rel="stylesheet" href="./index.css">
     <link rel="stylesheet" href="../../extensions/fontawesome/css/all.min.css">
     <script type="module" src="../../../node_modules/@vanillawc/wc-monaco-editor/index.js"></script>
     <script defer src="./script.js"></script>
-    <script src="../../extensions/external-html.js"></script>
   </head>
   <body>
     <div class="mainApp">
@@ -18,8 +19,8 @@
               <span class="menuDropdownTitle">File</span>
               <div class="menuDropdownContent">
                 <span>Open File</span>
-                <span>New File</span>
-                <span class="ipcClose">Exit simpleEdit</span>
+                <span onclick="ipc.send('newFile');">New File</span>
+                <span class="ipcClose">Close Window</span>
               </div>
             </div>
             <div class="menuDropdown">
@@ -38,14 +39,13 @@
             </div>
           </div>
         </div>
-        <div class="clearDiv searchDiv">
-          <i class="searchIcon fa-solid fa-language"></i>
-          <select class="search">
-            <option value="text" selected>Plain Text</option>
-          </select>
-          <i class="searchIcon docsIcon fa-solid fa-book"></i>
-          <i class="searchIcon learnIcon fa-solid fa-graduation-cap"></i>
-          <!--<input class="search" type="text" placeholder="Suchen (CTRL + F)" list="languages">-->
+        <div class="fileManageDiv drag">
+          <div class="autoSaveDiv">
+            <label for="autoSave">Auto-Save</label>
+            <input type="checkbox" class="switch" name="autoSave" id="autoSave">
+          </div>
+          <div class="verticalDelimiter drag"></div>
+          <div class="fileName">{fileName}</div>
         </div>
         <div class="clearDiv">
           <div class="titleBarButtons" style="height: 30px;">
@@ -59,17 +59,15 @@
         <div id="mainEditor" style="width: 100%; height: 100%;"></div>
       </main>
       <footer class="bottomBar">
-        <div id="languageDiv" style="height: 100%;">
-          <select class="langData">
+        <div id="languageDiv">
+          <select class="langData search">
             <option>{langData}</option>
           </select>
           <i class="docsIcon fa-solid fa-book"></i>
           <i class="learnIcon fa-solid fa-graduation-cap"></i>
         </div>
         <div id="documentControlDiv">
-          <select class="lineData">
-            <option>{lineData}</option>
-          </select>
+          <span class="lineData">{lineData}</span>
           <select class="spaceData">
             <option>{spaceData}</option>
           </select>

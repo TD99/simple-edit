@@ -49,6 +49,7 @@
     "@vanillawc/wc-monaco-editor": "^1.10.15",
     "electron-squirrel-startup": "^1.0.0",
     "jquery": "^3.6.1",
+    "monaco-editor": "^0.34.0",
     "node-powershell": "^5.0.1",
     "tailwind": "^4.0.0"
   },

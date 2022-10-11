@@ -76,11 +76,22 @@ $(window).blur(()=>{
 monaco.editor.defineTheme('simpleEditDark', {
 	base: 'vs-dark',
 	inherit: true,
-	rules: [{ background: '343B48' }],
+	rules: [{ background: '39414f' }],
 	colors: {
 		'editor.background': '#343B48',
-        'editor.lineHighlightBackground': '#343b48',
-
+        'editor.lineHighlightBackground': '#343B48',
+        'widget.shadow': '#252A34',
+        'input.background': '#424c5c',
+        'list.activeSelectionBackground': '#4f5a6e',
+        'list.hoverBackground': '#64728c',
+        'editorHoverWidget.background': '#252a34',
+        'editor.hoverHighlightBackground': '#4f5a6e',
+        'editor.findMatchHighlightBackground': '#535c6a',
+        'editor.findMatchBackground': '#6e7d8d',
+        'editor.selectionHighlightBackground': '#5c6a79',
+        'editor.inactiveSelectionBackground': '#264f79',
+        'editorWidget.background': '#252a34',
+        'dropdown.background': '#252a34'
 	}
 });
 

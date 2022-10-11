@@ -2908,6 +2908,11 @@
   "resolved" "https://registry.npmjs.org/moment/-/moment-2.22.2.tgz"
   "version" "2.22.2"
 
+"monaco-editor@^0.34.0":
+  "integrity" "sha512-VF+S5zG8wxfinLKLrWcl4WUizMx+LeJrG4PM/M78OhcwocpV0jiyhX/pG6Q9jIOhrb/ckYi6nHnaR5OojlOZCQ=="
+  "resolved" "https://registry.npmjs.org/monaco-editor/-/monaco-editor-0.34.0.tgz"
+  "version" "0.34.0"
+
 "morgan@1.9.1":
   "integrity" "sha512-HQStPIV4y3afTiCYVxirakhlCfGkI161c76kKFca7Fk1JusM//Qeo1ej2XaMniiNeaZklMVrh3vTtIzpzwbpmA=="
   "resolved" "https://registry.npmjs.org/morgan/-/morgan-1.9.1.tgz"

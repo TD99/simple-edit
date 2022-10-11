@@ -1,0 +1,96 @@
+html, body{
+  width: 100%;
+  height: 100%;
+}
+
+body{
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-size: 10pt;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
+}
+
+.mainApp{
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #343B48;
+  box-sizing: border-box;
+  background-color: #343B48;
+}
+
+.topBar{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 48px;
+  padding: 9px;
+  box-sizing: border-box;
+  background: rgba(27, 29, 35, 0.8);
+  user-select: none;
+}
+
+.drag{
+  -webkit-app-region: drag !important;
+}
+
+.drag > *{
+  -webkit-app-region: none;
+}
+
+.appIcon{
+  width: 30px;
+  height: 30px;
+}
+
+.menuStrip{
+  display: flex;
+  margin: 0;
+}
+
+.menuStrip > div{
+  background-color: transparent;
+  outline: none;
+  border: none;
+  color: #BABFC8;
+  font-weight: 700;
+  font-size: medium;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.menuStrip > div:hover{
+  background-color: rgba(186, 191, 200, 0.2);
+}
+
+.clearDiv{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-self: center;
+  height: 100%;
+}
+
+.windowControlButton{
+  height: 100%;
+  background: none;
+  outline: none;
+  border: none;
+  font-size: 20px;
+  color: #BABFC8;
+  border-radius: 5px;
+}
+
+.windowControlButton:hover{
+  background-color: rgba(255, 255, 255, 0.1);
+}
