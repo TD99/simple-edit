@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, ipcRenderer } = require('electron');
 const ipc = ipcMain;
 const path = require('path');
 const componentDir = __dirname + "/../components";
@@ -8,6 +8,18 @@ const extensionDir = __dirname + "/../extensions";
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
+
+// Quick Actions
+app.setUserTasks([
+  {
+    program: process.execPath,
+    arguments: '--new-window',
+    iconPath: process.execPath,
+    iconIndex: 0,
+    title: 'New Window',
+    description: 'Create a new window'
+  }
+]);
 
 const windows = new Set();
 const windowTemplates = {
@@ -71,12 +83,33 @@ const createWindow = async ({minWidth, minHeight, width, height, frame, transpar
 
   windows.add(newWindow);
 
+  var isCloseDlg = false;
+  newWindow.on('close', e => {
+    if (isCloseDlg) {
+      e.preventDefault();
+      return;
+    }
+    isCloseDlg = true;
+    const choice = require('electron').dialog.showMessageBoxSync(
+      {
+        type: 'question',
+        buttons: ['Yes', 'No'],
+        title: 'Confirm',
+        message: 'Are you sure you want to quit?'
+      });
+    isCloseDlg = false;
+    if (choice === 1) {
+      e.preventDefault();
+    }
+  });
+
   newWindow.on('closed', () => {
     windows.delete(newWindow);
     newWindow = null;
   });
   
   newWindow.loadFile(path.join(componentDir, file));
+  newWindow.setBackgroundColor('#1f232a')
   
   return newWindow;
 }
@@ -100,7 +133,12 @@ ipc.on('closeApp', (event)=>{
   BrowserWindow.getFocusedWindow().close();
 });
 
-ipc.on('devTools', (event)=>{
+ipc.on('devTools', (event)=>{ //dep
+  event.sender.focus();
+  BrowserWindow.getFocusedWindow().webContents.toggleDevTools();
+});
+
+ipc.on('toggleDevTools', (event)=>{
   event.sender.focus();
   BrowserWindow.getFocusedWindow().webContents.toggleDevTools();
 });
@@ -113,7 +151,11 @@ ipc.on('openExtURL', (event, data) => {
   require('electron').shell.openExternal(data);
 });
 
-ipc.on('newFile', () => {
+ipc.on('newFile', () => { //dep
+  createWindow(windowTemplates["main"]);
+});
+
+ipc.on('newMainWindow', () => {
   createWindow(windowTemplates["main"]);
 });
 
@@ -124,7 +166,13 @@ ipc.on('openPreview', () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {createWindow(windowTemplates["main"]);});
+app.on('ready', () => {
+  createWindow(windowTemplates["main"]);
+  const openFilePath = process.argv[1];
+  if (openFilePath != ""){
+    BrowserWindow.getFocusedWindow.webContents.send('openFile', openFilePath);
+  }
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <title>mainApp</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline' file:; style-src 'unsafe-inline' file:; font-src file:"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; script-src 'unsafe-inline' file:; style-src 'unsafe-inline' file:; font-src file:"/>
     <link rel="stylesheet" href="../../extensions/global.css">
     <link rel="stylesheet" href="./index.css">
     <link rel="stylesheet" href="../../extensions/fontawesome/css/all.min.css">
@@ -18,22 +18,48 @@
             <div class="menuDropdown">
               <span class="menuDropdownTitle">File</span>
               <div class="menuDropdownContent">
-                <span>Open File</span>
                 <span onclick="ipc.send('newFile');">New File</span>
+                <span>Open File</span>
+                <span>Open Recent</span>
+                <span>Save</span>
+                <span>Save as</span>
+                <span>Settings</span>
                 <span class="ipcClose">Close Window</span>
               </div>
             </div>
             <div class="menuDropdown">
               <span class="menuDropdownTitle">Edit</span>
               <div class="menuDropdownContent">
-                <span onclick="$('.search').focus();">Change Language</span>
+                <span onclick="simpleEdit.editor.undo()">Undo</span>
+                <span onclick="simpleEdit.editor.redo()">Redo</span>
+                <span>Cut</span>
+                <span>Copy</span>
+                <span>Paste</span>
+                <span>Find</span>
+                <span>Replace</span>
+                <span>Select All</span>
+                <span onclick="simpleEdit.editor.comment.toggleLine()">Line Comment</span>
+                <span onclick="simpleEdit.editor.comment.toggleBlock()">Block Comment</span>
+              </div>
+            </div>
+            <div class="menuDropdown">
+              <span class="menuDropdownTitle">Document</span>
+              <div class="menuDropdownContent">
+                <span>Change Language</span>
+                <span>Language Docs</span>
+                <span>Learn Language</span>
+                <span>Goto Line</span>
+                <span>Change Spacing</span>
+                <span>Change Encoding</span>
+                <span>Save as Template</span>
               </div>
             </div>
             <div class="menuDropdown">
               <span class="menuDropdownTitle">Help</span>
               <div class="menuDropdownContent">
-                <span class="ipcDevTools">Open Developer Tools</span>
+                <span class="ipcDevTools">Toggle Dev Tools</span>
                 <span onclick="location.reload();">Reload</span>
+                <span>Key Mapping</span>
                 <span>About simpleEdit</span>
               </div>
             </div>
@@ -42,10 +68,15 @@
         <div class="fileManageDiv drag">
           <div class="autoSaveDiv">
             <label for="autoSave">Auto-Save</label>
-            <input type="checkbox" class="switch" name="autoSave" id="autoSave">
+            <input type="checkbox" class="switch" name="autoSave" id="autoSave" onchange="changeAutoSaveStatus(this.checked, this);">
           </div>
           <div class="verticalDelimiter drag"></div>
-          <div class="fileName">{fileName}</div>
+          <div class="menuDropdown">
+            <span class="menuDropdownTitle fileName">{fileName}</span>
+            <div class="menuDropdownContent">
+              <input type="text" name="" id="">
+            </div>
+          </div>
         </div>
         <div class="clearDiv">
           <div class="titleBarButtons" style="height: 30px;">

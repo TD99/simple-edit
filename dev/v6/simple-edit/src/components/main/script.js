@@ -1,6 +1,12 @@
 var $ = require('jquery');
+const fs = require("fs");
+const path = require("path");
 
 const { ipcRenderer } = require('electron');
+const { spawn } = require('child_process');
+const { subtle } = require('crypto');
+const { userInfo } = require('os');
+const { deprecate } = require('util');
 const ipc = ipcRenderer;
 
 function appControlEvt(event){
@@ -23,7 +29,6 @@ function appControlEvt(event){
         default:
             return false;
     }
-
 }
 
 $(".ipcMinimize").click(()=>{
@@ -55,11 +60,19 @@ $(".menuDropdown, .menuDropdownTitle").click((e) => {
     }
 });
 
-$("body").click(() => {
+$("body").click((e) => {
+    if ($(e.target).parents(".menuDropdownContent").length){return;}
     $(".menuDropdownContent").hide();
 });
 
 $(document).on('keydown', (e) => {
+    if((e.ctrlKey || e.altKey || e.shiftKey) && e.key) { //keyboard shortcut
+        if (mainEditor.hasTextFocus()) { //Global Monaco keys
+            if (e.ctrlKey && e.key == 'n') simpleEdit.file.new();
+        }
+
+        return;
+    }
     switch (e.key){
         case "Escape":
             $(".menuDropdownContent").hide();
@@ -209,7 +222,9 @@ function loadLanguageList(list){
 
 loadLanguageList(programmingLanguages);
 
-function openFile(file, detectFileExt=false){
+var currentFile = "";
+
+/* function openFile(file, detectFileExt=false){
     const buffer = fs.readFileSync(file);
     const content = buffer.toString();
     mainEditor.setValue(content);
@@ -222,5 +237,345 @@ function openFile(file, detectFileExt=false){
                 }
             });
         });
+    }
+    currentFile = file;
+    $(".fileName").text(path.parse(currentFile).base);
+    changeAutoSaveStatus(false, $("#autoSave"));
+} */
+
+/* function closeFile(newFileExt="plaintext"){
+    currentFile = "";
+    mainEditor.setValue("");
+    $(".fileName").text("New Document");
+    changeAutoSaveStatus(false, $("#autoSave"));
+} */
+
+/* function saveFile(file){
+    fs.writeFile(file, mainEditor.getValue(), function (err){
+        if (err) throw err;
+        console.log("Saved successfully!");
+    });
+} */
+
+/* function saveFile(){
+    if (currentFile){
+        fs.writeFile(currentFile, mainEditor.getValue(), function (err){
+            if (err) throw err;
+            console.log("Saved successfully!");
+        });
+    }
+} */
+
+var autosave = false;
+
+mainEditor.getModel().onDidChangeContent((evt) => {
+    if (currentFile && autosave){
+        saveFile();
+    }
+});
+
+mainEditor.addAction({
+    id: 'undo',
+    label: 'Undo',
+    run: () => {
+        mainEditor?.focus();
+        mainEditor.getModel()?.undo();
+    }
+});
+
+mainEditor.addAction({
+    id: 'redo',
+    label: 'Redo',
+    run: () => {
+        mainEditor?.focus();
+        mainEditor.getModel()?.redo();
+    }
+});
+
+mainEditor.addAction({
+    id: 'copy',
+    label: 'Copy',
+    run: () => {
+        mainEditor?.focus();
+        document.execCommand("copy");
+    }
+});
+
+mainEditor.addAction({
+    id: 'pasteAlt',
+    label: 'Paste',
+    run: () => {
+        mainEditor?.focus();
+        document.execCommand("paste");
+    }
+});
+
+mainEditor.addAction({
+    id: 'cut',
+    label: 'Cut',
+    run: () => {
+        mainEditor?.focus();
+        document.execCommand("cut");
+    }
+});
+
+mainEditor.addAction({
+    id: 'selectAll',
+    label: 'Select All',
+    run: () => {
+        mainEditor.setSelection(mainEditor.getModel().getFullModelRange())
+    }
+});
+
+function warnUserDevTools(title, text){
+    style = {
+        title: "color:red;font-size:4rem;font-weight:bold;-webkit-text-stroke: 1px black;",
+        text: "color:red;font-size:1.5rem;font-weight:bold;"
+    };
+
+    if (title){
+        title = "%c" + title;
+        console.log(title, style["title"]);
+    }
+
+    if (text){
+        text = "%c" + text;
+        console.log(text, style["text"]);
+    }
+}
+
+warnUserDevTools("Stop!", "Don't enter anything, unless you know what you're doing!");
+
+mainEditor.onDidChangeCursorPosition((evt) => {
+    const pos = mainEditor.getPosition();
+    $(".lineData").text("Ln " + pos.lineNumber + ", Col " + pos.column);
+});
+
+function changeAutoSaveStatus(turnOn, element){
+    autosave = turnOn;
+
+    if (!currentFile && (autosave || turnOn)){
+        changeAutoSaveStatus(false, element);
+        return false;
+    }
+
+    if (element){
+        $(element).get().forEach(item => {
+            item.checked = turnOn;
+        });
+    }
+}
+
+function triggerMonacoEvt(action, editor=mainEditor){
+    editor.focus();
+    editor.trigger('action', action);
+}
+
+$(".lineData").click(() => {
+    triggerMonacoEvt('editor.action.gotoLine', mainEditor);
+});
+
+ipcRenderer.on('openFile', function (event, data) {
+    alert(data);
+});
+
+const simpleEdit = {
+    file: {
+        current: "",
+        new() {
+            simpleEdit.window.create(); //dep
+
+            /* if (this.current) {
+            } else {
+                this.close();
+            } Later */ 
+        },
+        open(file, detectFileExt=true) {
+            if (this.current) {
+                
+            } else {
+                const buffer = fs.readFileSync(file);
+                const content = buffer.toString();
+                mainEditor.setValue(content);
+                if (detectFileExt) {
+                    const ext = path.parse(file).ext;
+                    programmingLanguages.forEach(e => { //dep
+                        e.extensions.forEach(f => {
+                            if('.' + f == ext){
+                                changeLang(e.name, ".search");
+                            }
+                        });
+                    });
+                }
+                this.current = file;
+                $(".fileName").text(path.parse(this.current).base);
+                changeAutoSaveStatus(false, $("#autoSave")); //dep
+            }
+        },
+        save(file) {
+            fs.writeFile(file, mainEditor.getValue(), function (err){
+                if (err) throw err;
+                console.log("Saved successfully! (" + file + ")");
+            });
+            this.current = file;
+        },
+        save() {
+            if (this.current){
+                fs.writeFile(this.current, mainEditor.getValue(), function (err){
+                    if (err) throw err;
+                    console.log("Saved successfully! (" + this.current + ")");
+                });
+            } else {
+                this.saveAs();
+            }
+        },
+        saveAs() {
+
+        },
+        close(force=false) {
+            prompt("Sure?"); //dep
+            
+            this.current = "";
+            mainEditor.setValue("");
+            monaco.editor.setModelLanguage(mainEditor.getModel(), "plaintext");
+            $(".fileName").text("New Document");
+            changeAutoSaveStatus(false, $("#autoSave")); //dep
+            return true;
+        }
+    },
+    window: {
+        close() {
+            ipc.send("closeApp");
+        },
+        minimize() {
+            ipc.send("minimizeApp");
+        },
+        maximize() {
+            ipc.send("maximizeApp");
+        },
+        create() {
+            ipc.send("newMainWindow");
+        },
+        devTools: {
+            toggle() {
+                ipc.send("toggleDevTools");
+            }
+        },
+        reload() {
+            location.reload();
+        },
+        keyMapping: {
+            show() {
+                alert("keyMapping");
+            }
+        },
+        about: {
+            show() {
+                alert("about");
+            }
+        },
+        recent: {
+            show() {
+                alert("recent");
+            }
+        }
+    },
+    app: {
+        settings: {
+            show() {
+                alert("settings");
+            }
+        }
+    },
+    security: {
+        warnConsole(title, text) {
+            style = {
+                title: "color:red;font-size:4rem;font-weight:bold;-webkit-text-stroke: 1px black;",
+                text: "color:red;font-size:1.5rem;font-weight:bold;"
+            };
+        
+            if (title) {
+                title = "%c" + title;
+                console.log(title, style["title"]);
+            }
+        
+            if (text) {
+                text = "%c" + text;
+                console.log(text, style["text"]);
+            }
+        }
+    },
+    editor: {
+        undo() {
+            triggerMonacoEvt("undo");
+        },
+        redo() {
+            triggerMonacoEvt("redo");
+        },
+        cut() {
+            triggerMonacoEvt("cut");
+        },
+        copy() {
+            triggerMonacoEvt("copy");
+        },
+        paste() {
+            triggerMonacoEvt("pasteAlt");
+        },
+        find() {
+            triggerMonacoEvt("actions.find");
+        },
+        replace() {
+            triggerMonacoEvt("editor.action.startFindReplaceAction");
+        },
+        selectAll() {
+            triggerMonacoEvt("selectAll");
+        },
+        comment: {
+            toggleLine() {
+                triggerMonacoEvt("editor.action.commentLine");
+            },
+            toggleBlock() {
+                triggerMonacoEvt("editor.action.blockComment");
+            }
+        },
+        language: {
+            change() {
+
+            },
+            openDocs() {
+
+            },
+            openLearn() {
+
+            }
+        },
+        gotoLine() {
+
+        },
+        changeSpacing() {
+
+        },
+        encoding: {
+            set(encoding) {
+                encoding = ['LF', '\n', 0].includes(encoding)?0:1;
+                mainEditor.getModel().setEOL(encoding);
+            },
+            get(humanReadable=true) {
+                const eol = mainEditor.getModel().getEOL();
+                if (humanReadable) {
+                    return (eol == '\n')?"LF":"CRLF";
+                }
+                return eol;
+            },
+            change() {
+                alert("Change Encoding");
+            }
+        },
+        changeEncoding() {
+
+        },
+        saveAsTemplate() {
+
+        }
     }
 }
