@@ -4,25 +4,44 @@
   top: 0;
   left: 0;
   background-color: #2c2e38;
-  min-width: 160px;
   z-index: 99;
   border: 1px solid black;
   border-radius: 5px;
+  max-width: 80%;
 }
 
-.menuDropdownContent span{
+.menuDropdownContent .menuDropdownButton{
   float: none;
   color: black;
   padding: 6px 16px;
   text-decoration: none;
-  display: block;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   text-align: left;
   color: white;
   border-radius: 5px;
+  gap: 20px;
 }
 
-.menuDropdownContent span:hover{
+.menuDropdownContent .menuDropdownButton span{
+  word-wrap: break-word;
+}
+
+.menuDropdownContent .menuDropdownButton:hover{
   background-color: rgba(255, 255, 255, 0.2);
+}
+
+.menuDropdownContent .menuDropdownButton .keyShortcut{
+  min-width: fit-content;
+}
+
+.keyShortcut{
+  font-size: 10px;
+  background-color: #343743;
+  border: 2px solid #62687c;
+  border-radius: 10px;
+  padding: 3px 5px;
 }
 
 .docsIcon, .learnIcon{

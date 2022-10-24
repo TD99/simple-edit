@@ -3,13 +3,9 @@ const fs = require("fs");
 const path = require("path");
 
 const { ipcRenderer } = require('electron');
-const { spawn } = require('child_process');
-const { subtle } = require('crypto');
-const { userInfo } = require('os');
-const { deprecate } = require('util');
 const ipc = ipcRenderer;
 
-function appControlEvt(event){
+/* function appControlEvt(event){
     switch (event){
         case 'minimize':
             ipc.send('minimizeApp');
@@ -29,22 +25,22 @@ function appControlEvt(event){
         default:
             return false;
     }
-}
+} */
 
-$(".ipcMinimize").click(()=>{
-    appControlEvt("minimize");
+$(".ipcMinimize").on('click', () => {
+    simpleEdit.window.minimize();
 });
 
-$(".ipcMaximize").click(()=>{
-    appControlEvt("maximize");
+$(".ipcMaximize").on('click', () => {
+    simpleEdit.window.maximize();
 });
 
-$(".ipcClose").click(()=>{
-    appControlEvt("close");
+$(".ipcClose").on('click', () => {
+    simpleEdit.window.close();
 });
 
-$(".ipcDevTools").click(() => {
-    appControlEvt("devtools");
+$(".ipcDevTools").on('click', () => {
+    simpleEdit.window.devTools.toggle();
 });
 
 $(".menuDropdown, .menuDropdownTitle").click((e) => {
@@ -222,7 +218,7 @@ function loadLanguageList(list){
 
 loadLanguageList(programmingLanguages);
 
-var currentFile = "";
+/* var currentFile = ""; */
 
 /* function openFile(file, detectFileExt=false){
     const buffer = fs.readFileSync(file);
@@ -266,11 +262,312 @@ var currentFile = "";
     }
 } */
 
+$(".se-newFile").on('click', () => {
+    simpleEdit.file.new();
+});
+
+const mainCtxMenu = {
+    "File": [
+        {
+            name: "se-newFile",
+            displayName: "New File",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'n'
+                }
+            ],
+            global: true
+        },
+        {
+            name: "se-openFile",
+            displayName: "Open File",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'o'
+                }
+            ],
+            global: true
+        },
+        {
+            name: "se-openRecent",
+            displayName: "Open Recent",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    shiftKey: true,
+                    key: 'o'
+                }
+            ],
+            global: true
+        },
+        {
+            name: "se-save",
+            displayName: "Save",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 's'
+                }
+            ],
+            global: true
+        },
+        {
+            name: "se-saveAs",
+            displayName: "Save As",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    shiftKey: true,
+                    key: 's'
+                }
+            ],
+            global: true
+        },
+        {
+            name: "se-settings",
+            displayName: "Settings"
+        },
+        {
+            name: "se-closeWindow",
+            displayName: "Close Window",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'w'
+                }
+            ],
+            alreadyRegistered: true
+        }
+    ],
+    "Edit": [
+        {
+            name: "se-undo",
+            displayName: "Undo",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'z'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-redo",
+            displayName: "Redo",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'y'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-cut",
+            displayName: "Cut",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'x'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-copy",
+            displayName: "Copy",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'c'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-paste",
+            displayName: "Paste",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'v'
+                }
+            ],
+            alreadyRegistered: false
+        },
+        {
+            name: "se-find",
+            displayName: "Find",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'f'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-replace",
+            displayName: "Replace",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'h'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-selectAll",
+            displayName: "Select All",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'a'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-lineComment",
+            displayName: "Line Comment",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: '§'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-blockComment",
+            displayName: "Block Comment",
+            accelerator: [
+                {
+                    altKey: true,
+                    shiftKey: true,
+                    key: 'a'
+                }
+            ],
+            alreadyRegistered: true
+        }
+    ],
+    "Document": [
+        {
+            name: "se-changeLanguage",
+            displayName: "Change Language",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'k'
+                },
+                {
+                    ctrlKey: true,
+                    key: 'm'
+                }
+            ]
+        },
+        {
+            name: "se-languageDocs",
+            displayName: "Language Docs"
+        },
+        {
+            name: "se-learnLanguage",
+            displayName: "Learn Language"
+        },
+        {
+            name: "se-gotoLine",
+            displayName: "Goto Line",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'g'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-changeSpacing",
+            displayName: "Change Spacing",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    key: 'e'
+                }
+            ]
+        },
+        {
+            name: "se-changeEncoding",
+            displayName: "Change Encoding",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    shiftKey: true,
+                    key: 'e'
+                }
+            ]
+        },
+        {
+            name: "se-saveAsTemplate",
+            displayName: "Save as Template"
+        }
+    ],
+    "Help": [
+        {
+            name: "se-toggleDevTools",
+            displayName: "Toggle Dev Tools",
+            accelerator: [
+                {
+                    ctrlKey: true,
+                    shiftKey: true,
+                    key: 'i'
+                }
+            ],
+            alreadyRegistered: true
+        },
+        {
+            name: "se-reloadWindow",
+            displayName: "Reload Window"
+        },
+        {
+            name: "se-keyMapping",
+            displayName: "Key Mapping"
+        },
+        {
+            name: "se-about",
+            displayName: "About simpleEdit"
+        }
+    ]
+};
+
+function loadContext(config, appendTo) {
+    const parentE = $(appendTo);
+    parentE.empty();
+
+    Object.keys(mainCtxMenu).forEach(key => {
+        const menuDropdown = $("<div>", { class: 'menuDropdown' });
+        parentE.append(menuDropdown);
+
+        const menuDropdownTitle = $("<span>", { class: 'menuDropdownTitle', text: key });
+        const menuDropdownContent = $("<div>", { class: 'menuDropdownContent' });
+        menuDropdown.append(menuDropdownTitle, menuDropdownContent);
+    });
+
+}
+
+loadContext(mainCtxMenu, "#mainMenuStrip");
+
+$(".menuDropdownButton").on('click', () => {
+
+});
+
 var autosave = false;
 
 mainEditor.getModel().onDidChangeContent((evt) => {
-    if (currentFile && autosave){
-        saveFile();
+    if (simpleEdit.file.current && simpleEdit.file.autoSave.status){
+        simpleEdit.file.save();
     }
 });
 
@@ -327,7 +624,7 @@ mainEditor.addAction({
     }
 });
 
-function warnUserDevTools(title, text){
+/* function warnUserDevTools(title, text){
     style = {
         title: "color:red;font-size:4rem;font-weight:bold;-webkit-text-stroke: 1px black;",
         text: "color:red;font-size:1.5rem;font-weight:bold;"
@@ -344,14 +641,14 @@ function warnUserDevTools(title, text){
     }
 }
 
-warnUserDevTools("Stop!", "Don't enter anything, unless you know what you're doing!");
+warnUserDevTools("Stop!", "Don't enter anything, unless you know what you're doing!"); */
 
 mainEditor.onDidChangeCursorPosition((evt) => {
     const pos = mainEditor.getPosition();
     $(".lineData").text("Ln " + pos.lineNumber + ", Col " + pos.column);
 });
 
-function changeAutoSaveStatus(turnOn, element){
+/* function changeAutoSaveStatus(turnOn, element){
     autosave = turnOn;
 
     if (!currentFile && (autosave || turnOn)){
@@ -364,7 +661,7 @@ function changeAutoSaveStatus(turnOn, element){
             item.checked = turnOn;
         });
     }
-}
+} */
 
 function triggerMonacoEvt(action, editor=mainEditor){
     editor.focus();
@@ -409,7 +706,7 @@ const simpleEdit = {
                 }
                 this.current = file;
                 $(".fileName").text(path.parse(this.current).base);
-                changeAutoSaveStatus(false, $("#autoSave")); //dep
+                this.autoSave.setStatus(false); //dep
             }
         },
         save(file) {
@@ -418,6 +715,18 @@ const simpleEdit = {
                 console.log("Saved successfully! (" + file + ")");
             });
             this.current = file;
+        },
+        autoSave: {
+            status: false,
+            setStatus(stat) {
+                this.status = (simpleEdit.file.current)?(stat):(false);
+            
+                $("#autoSave").get().forEach(item => {
+                    item.checked = this.status;
+                });
+
+                return stat == this.status;
+            }
         },
         save() {
             if (this.current){
@@ -432,19 +741,22 @@ const simpleEdit = {
         saveAs() {
 
         },
+        saveAsTemplate() {
+
+        },
         close(force=false) {
-            prompt("Sure?"); //dep
-            
+            if (!force && !confirm("Sure?")) return false; //dep
             this.current = "";
             mainEditor.setValue("");
             monaco.editor.setModelLanguage(mainEditor.getModel(), "plaintext");
             $(".fileName").text("New Document");
-            changeAutoSaveStatus(false, $("#autoSave")); //dep
+            this.autoSave.setStatus(false); //dep
             return true;
         }
     },
     window: {
-        close() {
+        close(force=false) {
+            if (!simpleEdit.file.close(force)) return false;
             ipc.send("closeApp");
         },
         minimize() {
@@ -480,11 +792,9 @@ const simpleEdit = {
             }
         }
     },
-    app: {
-        settings: {
-            show() {
-                alert("settings");
-            }
+    settings: {
+        show() {
+            alert("settings");
         }
     },
     security: {
@@ -493,12 +803,12 @@ const simpleEdit = {
                 title: "color:red;font-size:4rem;font-weight:bold;-webkit-text-stroke: 1px black;",
                 text: "color:red;font-size:1.5rem;font-weight:bold;"
             };
-        
+            
             if (title) {
                 title = "%c" + title;
                 console.log(title, style["title"]);
             }
-        
+            
             if (text) {
                 text = "%c" + text;
                 console.log(text, style["text"]);
@@ -540,7 +850,7 @@ const simpleEdit = {
         },
         language: {
             change() {
-
+                alert("Change Lang");
             },
             openDocs() {
 
@@ -550,9 +860,35 @@ const simpleEdit = {
             }
         },
         gotoLine() {
-
+            triggerMonacoEvt('editor.action.gotoLine');
         },
-        changeSpacing() {
+        spacing: {
+            change: {
+                toSpaces() {
+                    triggerMonacoEvt('editor.action.indentUsingSpaces');
+                },
+                toTabs() {
+                    triggerMonacoEvt('editor.action.indentUsingTabs');
+                }
+            },
+            set(tabSize=4, insertSpaces=true) {
+                mainEditor.getModel().updateOptions({tabSize, insertSpaces});
+            },
+            get(humanReadable=true) {
+                const { tabSize, insertSpaces } = mainEditor.getModel().getOptions();
+                return (humanReadable)?((insertSpaces)?"Spaces":"Tabs")+": "+tabSize:({tabSize, insertSpaces});
+            },
+            convert: {
+                toSpaces() {
+                    triggerMonacoEvt('editor.action.indentationToSpaces');
+                },
+                toTabs() {
+                    triggerMonacoEvt('editor.action.indentationToTabs');
+                }
+            },
+            detect() {
+                triggerMonacoEvt('editor.action.detectIndentation');
+            }
 
         },
         encoding: {
@@ -570,12 +906,7 @@ const simpleEdit = {
             change() {
                 alert("Change Encoding");
             }
-        },
-        changeEncoding() {
-
-        },
-        saveAsTemplate() {
-
         }
     }
 }
+simpleEdit.security.warnConsole("Stop!", "Don't enter anything, unless you know what you're doing!");
