@@ -10,6 +10,7 @@ body{
   font-size: 10pt;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: white;
+  overflow: hidden;
 }
 
 .mainApp{
@@ -97,4 +98,28 @@ body{
 
 #mainEditor{
   user-select: none;
+}
+
+.titleBarButtons{
+  width: max-content;
+}
+
+.fileName {
+  background-color: transparent;
+  color: inherit;
+  border: none;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.fileName:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.menuDropdownSeparator{
+  display: flex;
+  height: 0.5px;
+  background-color: #5a5e71;
+  margin: 6px 16px;
 }

@@ -39,9 +39,573 @@ $(".ipcClose").on('click', () => {
     simpleEdit.window.close();
 });
 
-$(".ipcDevTools").on('click', () => {
-    simpleEdit.window.devTools.toggle();
-});
+function loadMonacoThemes() {
+    monaco.editor.defineTheme('simpleEditDark', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [{ background: '39414f' }],
+        colors: {
+            'editor.background': '#343B48',
+            'editor.lineHighlightBackground': '#343B48',
+            'widget.shadow': '#252A34',
+            'input.background': '#394250',
+            'list.activeSelectionBackground': '#4f5a6e',
+            'list.hoverBackground': '#3d4656',
+            'editorHoverWidget.background': '#252a34',
+            'editor.hoverHighlightBackground': '#4f5a6e',
+            'editor.findMatchHighlightBackground': '#535c6a',
+            'editor.findMatchBackground': '#6e7d8d',
+            'editor.selectionHighlightBackground': '#5c6a79',
+            'editor.inactiveSelectionBackground': '#264f79',
+            'editorWidget.background': '#252a34',
+            'dropdown.background': '#252a34'
+        }
+    });
+}
+
+var mainEditor; //global
+function loadMonaco(div, val, lang){
+    $(div).empty();
+    loadMonacoThemes();
+    mainEditor = monaco.editor.create(document.querySelector(div), {
+        value: val || "",
+        language: lang || 'text',
+        lineNumbers: 'on',
+        roundedSelection: false,
+        scrollBeyondLastLine: false,
+        readOnly: false,
+        theme: 'simpleEditDark',
+        automaticLayout: true
+    });
+}
+loadMonaco("#mainEditor");
+
+var mainCtxMenu; //global
+function setContext(config){
+    mainCtxMenu = config || {
+        "File": [
+            {
+                name: "se-newFile",
+                displayName: "New File",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'n'
+                    }
+                ],
+                global: true,
+                run() {
+                    simpleEdit.file.new();
+                }
+            },
+            {
+                name: "se-newWindow",
+                displayName: "New Window",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        shiftKey: true,
+                        key: 'n'
+                    }
+                ],
+                global: true,
+                run() {
+                    simpleEdit.window.create();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-openFile",
+                displayName: "Open File",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'o'
+                    }
+                ],
+                global: true,
+                run() {
+                    simpleEdit.file.openDlg();
+                }
+            },
+            {
+                name: "se-openRecent",
+                displayName: "Open Recent",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        shiftKey: true,
+                        key: 'o'
+                    }
+                ],
+                global: true,
+                run() {
+                    simpleEdit.window.recent();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-save",
+                displayName: "Save",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 's'
+                    }
+                ],
+                global: true,
+                run() {
+                    simpleEdit.file.save();
+                }
+            },
+            {
+                name: "se-saveAs",
+                displayName: "Save As",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        shiftKey: true,
+                        key: 's'
+                    }
+                ],
+                global: true,
+                run() {
+                    simpleEdit.file.saveAs();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-settings",
+                displayName: "Settings"
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-closeWindow",
+                displayName: "Close Window",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'w'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.window.close();
+                }
+            }
+        ],
+        "Edit": [
+            {
+                name: "se-undo",
+                displayName: "Undo",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'z'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.undo();
+                }
+            },
+            {
+                name: "se-redo",
+                displayName: "Redo",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'y'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.redo();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-cut",
+                displayName: "Cut",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'x'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.cut();
+                }
+            },
+            {
+                name: "se-copy",
+                displayName: "Copy",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'c'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.copy();
+                }
+            },
+            {
+                name: "se-paste",
+                displayName: "Paste",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'v'
+                    }
+                ],
+                alreadyRegistered: false,
+                run() {
+                    simpleEdit.editor.paste();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-find",
+                displayName: "Find",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'f'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.find();
+                }
+            },
+            {
+                name: "se-replace",
+                displayName: "Replace",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'h'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.replace();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-selectAll",
+                displayName: "Select All",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'a'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.selectAll();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-lineComment",
+                displayName: "Line Comment",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: '\u00A7'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.comment.toggleLine();
+                }
+            },
+            {
+                name: "se-blockComment",
+                displayName: "Block Comment",
+                accelerator: [
+                    {
+                        altKey: true,
+                        shiftKey: true,
+                        key: 'a'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.comment.toggleBlock();
+                }
+            }
+        ],
+        "Document": [
+            {
+                name: "se-changeLanguage",
+                displayName: "Change Language",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'k'
+                    },
+                    {
+                        ctrlKey: true,
+                        key: 'm'
+                    }
+                ],
+                run() {
+                    simpleEdit.editor.language.change();
+                }
+            },
+            {
+                name: "se-languageDocs",
+                displayName: "Language Docs",
+                run() {
+                    simpleEdit.editor.language.openDocs();
+                }
+            },
+            {
+                name: "se-learnLanguage",
+                displayName: "Learn Language",
+                run() {
+                    simpleEdit.editor.language.openLearn();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-gotoLine",
+                displayName: "Goto Line",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'g'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.gotoLine();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-changeSpacing",
+                displayName: "Change Spacing",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        key: 'e'
+                    }
+                ],
+                run() {
+                    simpleEdit.editor.spacing.change();
+                }
+            },
+            {
+                name: "se-changeEndOfLine",
+                displayName: "Change End of Line Sequence",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        shiftKey: true,
+                        key: 'e'
+                    }
+                ],
+                run() {
+                    simpleEdit.editor.endofline.change();
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-saveAsTemplate",
+                displayName: "Save as Template",
+                run() {
+                    simpleEdit.file.saveAsTemplate();
+                }
+            }
+        ],
+        "Help": [
+            {
+                name: "se-toggleDevTools",
+                displayName: "Toggle Dev Tools",
+                accelerator: [
+                    {
+                        ctrlKey: true,
+                        shiftKey: true,
+                        key: 'i'
+                    }
+                ],
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.window.devTools.toggle();
+                }
+            },
+            {
+                name: "se-reloadWindow",
+                displayName: "Reload Window",
+                run() {
+                    simpleEdit.window.reload()
+                }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-keyMapping",
+                displayName: "Key Mapping",
+                run() {
+                    simpleEdit.window.keyMapping.show();
+                }
+            },
+            {
+                name: "se-about",
+                displayName: "About simpleEdit",
+                run() {
+                    simpleEdit.window.about.show();
+                }
+            }
+        ]
+    };
+}
+
+function loadContext(appendTo, config) {
+    setContext(config);
+
+    const parentE = $(appendTo);
+    parentE.empty();
+
+    Object.keys(mainCtxMenu).forEach(key => {
+        const menuDropdown = $("<div>", { class: 'menuDropdown' });
+        parentE.append(menuDropdown);
+
+        const menuDropdownTitle = $("<span>", { class: 'menuDropdownTitle', text: key });
+        const menuDropdownContent = $("<div>", { class: 'menuDropdownContent' });
+        menuDropdown.append(menuDropdownTitle, menuDropdownContent);
+
+        mainCtxMenu[key].forEach(item => {
+            if (item.separator) {
+                const separator = $("<div>", { class: 'menuDropdownSeparator' });
+                menuDropdownContent.append(separator);
+            } else {
+                const menuDropdownButton = $("<div>", { class: 'menuDropdownButton ' + item.name });
+                menuDropdownContent.append(menuDropdownButton);
+                
+                const menuDropdownButtonLbl = $("<span>", { class: 'menuDropdownButtonLbl', text: item.displayName });
+                menuDropdownButton.append(menuDropdownButtonLbl);
+
+                if (item.accelerator) {
+                    let keyComb = [];
+
+                    item.accelerator.forEach(comb => {
+                        let keyInscance = [];
+                        if (comb.ctrlKey) keyInscance.push("CTRL");
+                        if (comb.altKey) keyInscance.push("ALT");
+                        if (comb.shiftKey) keyInscance.push("SHIFT");
+                        keyInscance.push(comb.key.toUpperCase());
+                        keyComb.push(keyInscance.join(" + "));
+                    });
+
+                    const keyShortcut = $("<span>", { class: 'keyShortcut', text: keyComb.join(", ") });
+                    menuDropdownButton.append(keyShortcut);
+
+                    if (!item.alreadyRegistered) {
+                        if (item.global) {
+                            if (item.accelerator > 1) throw new Error("A global keyCombination cannot be complex!"); 
+                            $(document).on('keydown', (e) => {
+                                const ctrlKey = (item.accelerator[0].ctrlKey)?true:false;
+                                const altKey = (item.accelerator[0].altKey)?true:false;
+                                const shiftKey = (item.accelerator[0].shiftKey)?true:false;
+                                const key = item.accelerator[0].key.toUpperCase();
+                                
+                                const eventKey = e.key.toUpperCase();
+
+                                /* console.log(ctrlKey, e.ctrlKey, altKey, e.altKey, shiftKey, e.shiftKey, key, eventKey)
+                                console.log((ctrlKey == e.ctrlKey), (altKey == e.altKey), (shiftKey == e.shiftKey), (key == eventKey)) */
+                                if ((ctrlKey == e.ctrlKey) && (altKey == e.altKey) && (shiftKey == e.shiftKey) && (key == eventKey)) {
+                                    item.run();
+                                }
+                            });
+                        }/*  else {
+                            const keyConfig = item.accelerator;
+                            const keybinding = [];
+                            for (let i = 0; i < keyConfig.length; i++) {
+                                keybinding[i] = (keyConfig.ctrlKey)?monaco.KeyMod.CtrlCmd:null || (keyConfig.altKey)?monaco.KeyMod.AltCmd:null || (keyConfig.shiftKey)?monaco.KeyMod.ShiftCmd:null;
+                            }
+                            const keybindingChord = monaco.KeyMod.chord();
+
+                            mainEditor.addAction({
+                                // An unique identifier of the contributed action.
+                                id: item.name + '_custom',
+                            
+                                // A label of the action that will be presented to the user.
+                                label: item.displayName,
+                            
+                                // An optional array of keybindings for the action.
+                                keybindings: [
+                                    monaco.KeyMod.CtrlCmd | monaco.KeyCode.F10,
+                                    // chord
+                                    monaco.KeyMod.chord(
+                                        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
+                                        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyM
+                                    )
+                                ],
+                            
+                                // A precondition for this action.
+                                precondition: null,
+                            
+                                // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+                                keybindingContext: null,
+                            
+                                contextMenuGroupId: 'navigation',
+                            
+                                contextMenuOrder: 1.5,
+                            
+                                // Method that will be executed when the action is triggered.
+                                // @param editor The editor instance is passed in as a convenience
+                                run: function (ed) {
+                                    alert("i'm running => " + ed.getPosition());
+                                }
+                            });
+                        } */
+                    }
+                }
+
+                // add action
+                if (item.run) {
+                    $(menuDropdownButton).on('click', () => {
+                        item.run();
+                        $(menuDropdownButton).parents(".menuDropdownContent").hide();
+                    });
+                }
+            }
+        });
+    });
+
+}
+loadContext("#mainMenuStrip");
 
 $(".menuDropdown, .menuDropdownTitle").click((e) => {
     var target = ($(e.target).hasClass("menuDropdownTitle"))?$(e.target).parent():e.target;
@@ -62,13 +626,13 @@ $("body").click((e) => {
 });
 
 $(document).on('keydown', (e) => {
-    if((e.ctrlKey || e.altKey || e.shiftKey) && e.key) { //keyboard shortcut
+    /* if((e.ctrlKey || e.altKey || e.shiftKey) && e.key) { //keyboard shortcut
         if (mainEditor.hasTextFocus()) { //Global Monaco keys
             if (e.ctrlKey && e.key == 'n') simpleEdit.file.new();
         }
 
         return;
-    }
+    } */
     switch (e.key){
         case "Escape":
             $(".menuDropdownContent").hide();
@@ -82,46 +646,9 @@ $(window).blur(()=>{
     $(".menuDropdownContent").hide();
 });
 
-monaco.editor.defineTheme('simpleEditDark', {
-	base: 'vs-dark',
-	inherit: true,
-	rules: [{ background: '39414f' }],
-	colors: {
-		'editor.background': '#343B48',
-        'editor.lineHighlightBackground': '#343B48',
-        'widget.shadow': '#252A34',
-        'input.background': '#424c5c',
-        'list.activeSelectionBackground': '#4f5a6e',
-        'list.hoverBackground': '#64728c',
-        'editorHoverWidget.background': '#252a34',
-        'editor.hoverHighlightBackground': '#4f5a6e',
-        'editor.findMatchHighlightBackground': '#535c6a',
-        'editor.findMatchBackground': '#6e7d8d',
-        'editor.selectionHighlightBackground': '#5c6a79',
-        'editor.inactiveSelectionBackground': '#264f79',
-        'editorWidget.background': '#252a34',
-        'dropdown.background': '#252a34'
-	}
-});
-
-var mainEditor;
-function loadMonaco(div, val, lang){
-    $(div).empty();
-    mainEditor = monaco.editor.create(document.querySelector(div), {
-        value: val || "",
-        language: lang || 'text',
-        lineNumbers: 'on',
-        roundedSelection: false,
-        scrollBeyondLastLine: false,
-        readOnly: false,
-        theme: 'simpleEditDark'
-    });
-}
-loadMonaco("#mainEditor");
-
-$(window).resize((e) => {
+/* $(window).resize((e) => {
     loadMonaco("#mainEditor", mainEditor.getValue(), $(".search").val());
-});
+}); */
 
 function appendLang(target){
     monaco.editor.setModelLanguage(mainEditor.getModel(), $(target).val());
@@ -262,302 +789,10 @@ loadLanguageList(programmingLanguages);
     }
 } */
 
-$(".se-newFile").on('click', () => {
+/* $(".se-newFile").on('click', () => {
     simpleEdit.file.new();
-});
+}); */
 
-const mainCtxMenu = {
-    "File": [
-        {
-            name: "se-newFile",
-            displayName: "New File",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'n'
-                }
-            ],
-            global: true
-        },
-        {
-            name: "se-openFile",
-            displayName: "Open File",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'o'
-                }
-            ],
-            global: true
-        },
-        {
-            name: "se-openRecent",
-            displayName: "Open Recent",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    shiftKey: true,
-                    key: 'o'
-                }
-            ],
-            global: true
-        },
-        {
-            name: "se-save",
-            displayName: "Save",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 's'
-                }
-            ],
-            global: true
-        },
-        {
-            name: "se-saveAs",
-            displayName: "Save As",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    shiftKey: true,
-                    key: 's'
-                }
-            ],
-            global: true
-        },
-        {
-            name: "se-settings",
-            displayName: "Settings"
-        },
-        {
-            name: "se-closeWindow",
-            displayName: "Close Window",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'w'
-                }
-            ],
-            alreadyRegistered: true
-        }
-    ],
-    "Edit": [
-        {
-            name: "se-undo",
-            displayName: "Undo",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'z'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-redo",
-            displayName: "Redo",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'y'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-cut",
-            displayName: "Cut",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'x'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-copy",
-            displayName: "Copy",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'c'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-paste",
-            displayName: "Paste",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'v'
-                }
-            ],
-            alreadyRegistered: false
-        },
-        {
-            name: "se-find",
-            displayName: "Find",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'f'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-replace",
-            displayName: "Replace",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'h'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-selectAll",
-            displayName: "Select All",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'a'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-lineComment",
-            displayName: "Line Comment",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: '§'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-blockComment",
-            displayName: "Block Comment",
-            accelerator: [
-                {
-                    altKey: true,
-                    shiftKey: true,
-                    key: 'a'
-                }
-            ],
-            alreadyRegistered: true
-        }
-    ],
-    "Document": [
-        {
-            name: "se-changeLanguage",
-            displayName: "Change Language",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'k'
-                },
-                {
-                    ctrlKey: true,
-                    key: 'm'
-                }
-            ]
-        },
-        {
-            name: "se-languageDocs",
-            displayName: "Language Docs"
-        },
-        {
-            name: "se-learnLanguage",
-            displayName: "Learn Language"
-        },
-        {
-            name: "se-gotoLine",
-            displayName: "Goto Line",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'g'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-changeSpacing",
-            displayName: "Change Spacing",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    key: 'e'
-                }
-            ]
-        },
-        {
-            name: "se-changeEncoding",
-            displayName: "Change Encoding",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    shiftKey: true,
-                    key: 'e'
-                }
-            ]
-        },
-        {
-            name: "se-saveAsTemplate",
-            displayName: "Save as Template"
-        }
-    ],
-    "Help": [
-        {
-            name: "se-toggleDevTools",
-            displayName: "Toggle Dev Tools",
-            accelerator: [
-                {
-                    ctrlKey: true,
-                    shiftKey: true,
-                    key: 'i'
-                }
-            ],
-            alreadyRegistered: true
-        },
-        {
-            name: "se-reloadWindow",
-            displayName: "Reload Window"
-        },
-        {
-            name: "se-keyMapping",
-            displayName: "Key Mapping"
-        },
-        {
-            name: "se-about",
-            displayName: "About simpleEdit"
-        }
-    ]
-};
-
-function loadContext(config, appendTo) {
-    const parentE = $(appendTo);
-    parentE.empty();
-
-    Object.keys(mainCtxMenu).forEach(key => {
-        const menuDropdown = $("<div>", { class: 'menuDropdown' });
-        parentE.append(menuDropdown);
-
-        const menuDropdownTitle = $("<span>", { class: 'menuDropdownTitle', text: key });
-        const menuDropdownContent = $("<div>", { class: 'menuDropdownContent' });
-        menuDropdown.append(menuDropdownTitle, menuDropdownContent);
-    });
-
-}
-
-loadContext(mainCtxMenu, "#mainMenuStrip");
 
 $(".menuDropdownButton").on('click', () => {
 
@@ -568,59 +803,6 @@ var autosave = false;
 mainEditor.getModel().onDidChangeContent((evt) => {
     if (simpleEdit.file.current && simpleEdit.file.autoSave.status){
         simpleEdit.file.save();
-    }
-});
-
-mainEditor.addAction({
-    id: 'undo',
-    label: 'Undo',
-    run: () => {
-        mainEditor?.focus();
-        mainEditor.getModel()?.undo();
-    }
-});
-
-mainEditor.addAction({
-    id: 'redo',
-    label: 'Redo',
-    run: () => {
-        mainEditor?.focus();
-        mainEditor.getModel()?.redo();
-    }
-});
-
-mainEditor.addAction({
-    id: 'copy',
-    label: 'Copy',
-    run: () => {
-        mainEditor?.focus();
-        document.execCommand("copy");
-    }
-});
-
-mainEditor.addAction({
-    id: 'pasteAlt',
-    label: 'Paste',
-    run: () => {
-        mainEditor?.focus();
-        document.execCommand("paste");
-    }
-});
-
-mainEditor.addAction({
-    id: 'cut',
-    label: 'Cut',
-    run: () => {
-        mainEditor?.focus();
-        document.execCommand("cut");
-    }
-});
-
-mainEditor.addAction({
-    id: 'selectAll',
-    label: 'Select All',
-    run: () => {
-        mainEditor.setSelection(mainEditor.getModel().getFullModelRange())
     }
 });
 
@@ -708,6 +890,9 @@ const simpleEdit = {
                 $(".fileName").text(path.parse(this.current).base);
                 this.autoSave.setStatus(false); //dep
             }
+        },
+        openDlg() {
+            console.log("open Dlg"); //dep
         },
         save(file) {
             fs.writeFile(file, mainEditor.getValue(), function (err){
@@ -817,19 +1002,24 @@ const simpleEdit = {
     },
     editor: {
         undo() {
-            triggerMonacoEvt("undo");
+            mainEditor?.focus();
+            mainEditor.getModel()?.undo();
         },
         redo() {
-            triggerMonacoEvt("redo");
+            mainEditor?.focus();
+            mainEditor.getModel()?.redo();
         },
         cut() {
-            triggerMonacoEvt("cut");
+            mainEditor?.focus();
+            document.execCommand("cut");
         },
         copy() {
-            triggerMonacoEvt("copy");
+            mainEditor?.focus();
+            document.execCommand("copy");
         },
         paste() {
-            triggerMonacoEvt("pasteAlt");
+            mainEditor?.focus();
+            document.execCommand("paste");
         },
         find() {
             triggerMonacoEvt("actions.find");
@@ -838,7 +1028,7 @@ const simpleEdit = {
             triggerMonacoEvt("editor.action.startFindReplaceAction");
         },
         selectAll() {
-            triggerMonacoEvt("selectAll");
+            mainEditor.setSelection(mainEditor.getModel().getFullModelRange());
         },
         comment: {
             toggleLine() {
@@ -891,10 +1081,10 @@ const simpleEdit = {
             }
 
         },
-        encoding: {
-            set(encoding) {
-                encoding = ['LF', '\n', 0].includes(encoding)?0:1;
-                mainEditor.getModel().setEOL(encoding);
+        endofline: {
+            set(endofline) {
+                endofline = ['LF', '\n', 0].includes(endofline)?0:1;
+                mainEditor.getModel().setEOL(endofline);
             },
             get(humanReadable=true) {
                 const eol = mainEditor.getModel().getEOL();
@@ -904,7 +1094,7 @@ const simpleEdit = {
                 return eol;
             },
             change() {
-                alert("Change Encoding");
+                alert("Change End of Line");
             }
         }
     }
