@@ -1100,3 +1100,7 @@ const simpleEdit = {
     }
 }
 simpleEdit.security.warnConsole("Stop!", "Don't enter anything, unless you know what you're doing!");
+
+
+// Experimental
+const shell = require('node-powershell');
