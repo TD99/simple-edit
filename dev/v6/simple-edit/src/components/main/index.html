@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="./index.css">
     <link rel="stylesheet" href="../../extensions/fontawesome/css/all.min.css">
     <script type="module" src="../../../node_modules/@vanillawc/wc-monaco-editor/index.js"></script>
-    <script defer charset="utf-8" src="./script.js"></script>
   </head>
   <body>
     <div class="mainApp">
@@ -26,21 +25,51 @@
           <div class="verticalDelimiter drag"></div>
           <div class="menuDropdown">
             <span class="menuDropdownTitle fileName">{fileName}</span>
-            <div class="menuDropdownContent">
-              <input type="text" name="" id="">
-            </div>
           </div>
         </div>
         <div class="clearDiv">
           <div class="titleBarButtons" style="height: 30px;">
-            <button class="windowControlButton ipcMinimize"><i class="fa-solid fa-minus"></i></button>
-            <button class="windowControlButton ipcMaximize"><i class="fa-regular fa-square"></i></button>
-            <button class="windowControlButton ipcClose"><i class="fa-regular fa-x"></i></button>
+            <button class="windowControlButton ipcMinimize" title="Minimize"><i class="fa-solid fa-minus"></i></button>
+            <button class="windowControlButton ipcMaximize" title="Maximize"><i class="fa-regular fa-square"></i></button>
+            <button class="windowControlButton ipcClose" title="Close"><i class="fa-regular fa-x"></i></button>
           </div>
         </div>
       </header>
       <main>
-        <div id="mainEditor"></div>
+        <div id="mainPreview">
+          <div style="margin: 5px 10px; font-weight: 600; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+            <div class="clearDiv">
+              <button onclick="document.getElementById('virtualBrowser').goBack();"><i class="fa-solid fa-arrow-left"></i></button>
+              <button onclick="document.getElementById('virtualBrowser').goForward();"><i class="fa-solid fa-arrow-right"></i></button>
+              <button onclick="document.getElementById('virtualBrowser').reload(true);"><i class="fa-solid fa-rotate-right"></i></button>
+              <input type="url" name="previewURL" id="previewURL">
+              <button onclick="try{ new window.URL(document.getElementById('previewURL').value) } catch (err) { return err; } document.getElementById('virtualBrowser').loadURL(document.getElementById('previewURL').value)"><i class="fa-solid fa-circle-play"></i></button>
+            </div>
+            <button onclick="simpleEdit.system.openInDefaultBrowser(document.getElementById('virtualBrowser').getURL());"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+            <div class="clearDiv">
+              <select name="previewZoom" id="previewZoom" onchange="changePreviewZoom(this.options[this.selectedIndex].value);">
+                <option value="25" selected>1:4</option>
+                <option value="50">2:4</option>
+                <option value="75">3:4</option>
+                <option value="100">1:1</option>
+                <option value="200">2:1</option>
+                <option value="300">3:1</option>
+                <option value="400">4:1</option>
+              </select>
+              <button onclick="if(document.getElementById('virtualBrowser').getZoomFactor() <= 0.1){return;} document.getElementById('virtualBrowser').setZoomFactor(document.getElementById('virtualBrowser').getZoomFactor() - 0.05);"><i class="fa-solid fa-minus"></i></button>
+              <button onclick="document.getElementById('virtualBrowser').setZoomFactor(document.getElementById('virtualBrowser').getZoomFactor() + 0.05);"><i class="fa-solid fa-plus"></i></button>
+              <button onclick="document.getElementById('virtualBrowser').openDevTools();"><i class="fa-solid fa-code"></i></button>
+              <button><i class="fa-regular fa-x"></i></button>
+            </div>
+          </div>
+          <div style="height: 100%; width: 100%; overflow: auto;">
+            <webview src="https://www.github.com/" autosize="on" style="height: 100%; background-color: white;" id="virtualBrowser"></webview>
+          </div>
+        </div>
+        <div style="width: 100%; height: 100%; overflow: hidden;">
+          <div id="mainEditor"></div>
+        </div>
+        
       </main>
       <footer class="bottomBar">
         <div id="languageDiv">
@@ -53,10 +82,13 @@
         <div id="documentControlDiv">
           <button class="lineData" title="Goto Line">{lineData}</button>
           <button class="spaceData" title="Change Spacing">{spaceData}</button>
-          <span class="encodingData">UTF-8</span>
+          <span class="encodingData" title="Encoding">UTF-8</span>
           <button class="eolData" title="Change End of Line Sequence">{eolData}</button>
         </div>
       </footer>
     </div>
+
+    <!-- Defer Scripts -->
+    <script defer src="./script.js"></script>
   </body>
 </html>

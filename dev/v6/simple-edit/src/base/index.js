@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, dialog, ipcRenderer } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, ipcRenderer, globalShortcut } = require('electron');
 const ipc = ipcMain;
 const path = require('path');
+
 const componentDir = __dirname + "/../components";
 const extensionDir = __dirname + "/../extensions";
 
@@ -13,7 +14,7 @@ if (require('electron-squirrel-startup')) {
 app.setUserTasks([
   {
     program: process.execPath,
-    arguments: '--new-window',
+    arguments: '',
     iconPath: process.execPath,
     iconIndex: 0,
     title: 'New Window',
@@ -34,28 +35,17 @@ const windowTemplates = {
       nodeIntegration: true, 
       contextIsolation: false, 
       devTools: true, 
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      webviewTag: true
     }, 
-    file: "main/index.html"
-  },
-  preview: {
-    minWidth: 800, 
-    minHeight: 600, 
-    width: 800, 
-    height: 600, 
-    frame: false,
-    transparent: false, 
-    webPreferences: {
-      nodeIntegration: true, 
-      contextIsolation: false, 
-      devTools: true, 
-      preload: path.join(__dirname, 'preload.js')
-    }, 
-    file: "preview/index.html"
-  },
+    file: "main/index.html",
+    type: "main"
+  }
 };
 
-const createWindow = async ({minWidth, minHeight, width, height, frame, transparent, webPreferences, file}) => {
+const createWindow = async ({minWidth, minHeight, width, height, frame, transparent, webPreferences, file, type}) => {
+  if (!type) type='none';
+
   if (
     process.env.NODE_ENV === 'development' ||
     process.env.DEBUG_PROD === 'true'
@@ -80,7 +70,6 @@ const createWindow = async ({minWidth, minHeight, width, height, frame, transpar
     x: (currentWindow)?(currentWindowX + 24):(undefined),
     y: (currentWindow)?(currentWindowY + 24):(undefined)
   });
-
   windows.add(newWindow);
 
   var isCloseDlg = false;
@@ -148,6 +137,7 @@ ipc.on('openFileDlg', (opt)=>{
 });
 
 ipc.on('openExtURL', (event, data) => {
+  console.log("Trying to open external URL: " + data);
   require('electron').shell.openExternal(data);
 });
 
@@ -157,10 +147,6 @@ ipc.on('newFile', () => { //dep
 
 ipc.on('newMainWindow', () => {
   createWindow(windowTemplates["main"]);
-});
-
-ipc.on('openPreview', () => {
-  createWindow(windowTemplates["preview"]);
 });
 
 // This method will be called when Electron has finished
@@ -189,4 +175,14 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow(windowTemplates["main"]);
   }
+});
+
+app.on('browser-window-focus', function () {
+  globalShortcut.register("CommandOrControl+R", () => {}); // Disable Reload
+  globalShortcut.register("F5", () => {}); // Disable Reload
+});
+
+app.on('browser-window-blur', function () {
+  globalShortcut.unregister('CommandOrControl+R');
+  globalShortcut.unregister('F5');
 });

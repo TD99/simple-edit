@@ -9,7 +9,7 @@ body{
   padding: 0;
   font-size: 10pt;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: white;
+  color: black;
   overflow: hidden;
 }
 
@@ -36,6 +36,7 @@ body{
   box-sizing: border-box;
   background: rgba(27, 29, 35, 0.8);
   user-select: none;
+  border-bottom: 2px solid #465063;
 }
 
 .drag{

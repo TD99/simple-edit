@@ -678,6 +678,33 @@ $(".search").change((e)=>{
     appendLang(e.target);
 });
 
+
+/* var resizePreview = document.getElementById("resizePreview");
+resizePreview.addEventListener('mousedown', initResize);
+var previewDiv = document.getElementById("mainPreview");
+
+function initResize(e) {
+    window.addEventListener('mousemove', resize, false);
+    window.addEventListener('mouseup', stopResize, false)
+}
+
+function resize(e) {
+    previewDiv.style.height = (e.clientY - previewDiv.offsetTop) + 'px'; //- previewDiv.offsetTop
+}
+
+function stopResize(e) {
+    window.removeEventListener('mousemove', resize, false);
+    window.removeEventListener('mouseup', stopResize, false)
+} */
+
+document.getElementById('virtualBrowser').addEventListener('did-finish-load', () => {document.getElementById('previewURL').value = document.getElementById('virtualBrowser').getURL();});
+
+function changePreviewZoom(val) {
+    if (!Number(val) || val < 0) return false;
+    
+    $("#mainPreview").css('height', 'calc(' + val + '%' + ' + ' + '22px');
+}
+
 function changeLang(lang, target){
     monaco.editor.setModelLanguage(mainEditor.getModel(), lang);
     $(target).val(lang);
@@ -936,6 +963,8 @@ const simpleEdit = {
             monaco.editor.setModelLanguage(mainEditor.getModel(), "plaintext");
             $(".fileName").text("New Document");
             this.autoSave.setStatus(false); //dep
+
+            document.getElementById('virtualBrowser').loadURL(path.join(__dirname, '../preview/index.html'));
             return true;
         }
     },
@@ -975,6 +1004,11 @@ const simpleEdit = {
             show() {
                 alert("recent");
             }
+        }
+    },
+    system: {
+        openInDefaultBrowser(url) {
+            ipc.send('openExtURL', url);
         }
     },
     settings: {
@@ -1101,6 +1135,62 @@ const simpleEdit = {
 }
 simpleEdit.security.warnConsole("Stop!", "Don't enter anything, unless you know what you're doing!");
 
-
 // Experimental
+
+/* var term = new Terminal();
+term.open(document.getElementById('mainConsole'));
+term.onData(d => {
+    ipc.send('term.toTerminal', d);
+});
+
+ipc.on('term.toClient', (event, data) => {
+    term.clear();
+    term.write(data);
+}); */
+
+/*  **DEPRECATED, REMOVE**
 const shell = require('node-powershell');
+
+var ps = new Set;
+ps.toArray = () => {
+    return Array.from(ps);
+};
+function startPS(pwsh=false, inputEncoding='utf8', outputEncoding='utf8') {
+    let process;
+    try{
+        process = new shell({
+            executionPolicy: 'Bypass',
+            noProfile: true,
+            pwshPrev: pwsh,
+            inputEncoding,
+            outputEncoding
+        });
+    } catch (err) {
+        return err;
+    }
+    process.on('output', output => {
+        console.log(output);
+    });
+
+    process.on('err', output => {
+        console.error(output);
+    });
+
+    process.on('end', output => {
+        ps.delete(process);
+    });
+
+    process.run = (val) => {
+        process.addCommand(val);
+        process.invoke();
+    };
+
+    ps.add(process);
+
+    return process;
+}
+
+function writePowershell(val) {
+    ps.addCommand(`${val}`);
+    ps.invoke();
+} */

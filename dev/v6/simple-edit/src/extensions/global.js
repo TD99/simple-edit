@@ -1,4 +1,4 @@
-var $ = require('jquery');
+/* var $ = require('jquery');
 
 const { ipcRenderer } = require('electron');
 const ipc = ipcRenderer;
@@ -40,4 +40,4 @@ $(".ipcClose").click(()=>{
 
 $(".ipcDevTools").click(() => {
     appControlEvt("devtools");
-});
+}); */
