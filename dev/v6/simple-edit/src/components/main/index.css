@@ -1,3 +1,8 @@
+:root{
+  --min-supported-height: 600px;
+  --min-supported-width: 800px;
+}
+
 body{
   color: white;
 }
@@ -195,11 +200,15 @@ body{
 }
 
 @media screen and (max-width: 200px) {
-  .fileName, .bottomBar, .mainEditor{
-    display: none;
+  main, .bottomBar, .fileManageDiv {
+    display: none !important;
   }
+
   .mainApp::after{
-    content: "Please resize the window to continue.";
+    content: 'Please resize the window to continue.';
+    display: flex;
+    align-items: center;
+    text-align: center;
   }
 }
 
@@ -239,3 +248,40 @@ main{
   background-color: #436cb8;
   cursor: n-resize;
 } */
+
+.hideTextOverflow{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#openExtBtn {
+  max-width: 50%;
+}
+
+@media screen and (max-width: 799px) {
+  #mainPreview {
+    display: none !important;
+  }
+}
+
+.virtualBrowserControls{
+  margin: 5px 10px; 
+  font-weight: 600; 
+  display: flex;
+  flex-direction: row; 
+  justify-content: space-between; 
+  align-items: center;
+}
+
+.virtualBrowserControls button, .virtualBrowserControls select, .virtualBrowserControls input{
+  background-color: rgba(255, 255, 255, 0.6);
+  height: 100%;
+  box-sizing: border-box;
+  outline: none;
+  border: none;
+}
+
+.virtualBrowserControls button:hover, .virtualBrowserControls select:hover, .virtualBrowserControls select:focus, .virtualBrowserControls input:hover, .virtualBrowserControls input:focus{
+  background-color: rgba(255, 255, 255, 0.8);
+}

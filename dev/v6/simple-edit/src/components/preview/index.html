@@ -6,33 +6,64 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline' file:; style-src 'unsafe-inline' file:; font-src file:"/>
   <link rel="stylesheet" href="../../extensions/global.css">
   <script defer src="../../extensions/global.js"></script>
-  <title>interactivePreview</title>
+  <title>Home</title>
   <style>
     body {
-      background-color: #36384d;
+      background-color: black;
       color: white;
-      font-weight: 700;
-      font-size: large;
+	    animation: gradient 15s ease infinite;
+      font-weight: 400;
+      font-size: medium;
       margin: 0 15px;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: center;
+    }
+
+    @keyframes gradient {
+      0% {
+        background-color: #fa8d6c;
+      }
+      20% {
+        background-color: #eb4886;
+      }
+      40% {
+        background-color: #55accc;
+      }
+      80% {
+        background-color: #4ebe70;
+      }
+      100% {
+        background-color: #fa8d6c;
+      }
     }
 
     h1 {
       margin: 0;
+      font-weight: 700;
+      font-size: xx-large;
     }
 
     span {
       font-weight: 700;
       font-size: large;
     }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      background-color: rgba(0, 0, 0, 0.2);
+      width: fit-content;
+      padding: 10px;
+    }
   </style>
 </head>
 <body>
-  <div>
+  <main>
     <h1>Hi there!</h1>
-    <span>You're using the interactive "Virtual Browser Preview" plugin.</span>
-  </div>
+    <span>You're using the Preview (Virtual Browser) plugin.</span>
+    <i>You can either open a file or type a URL to proceed.</i>
+  </main>
 </body>
 </html>

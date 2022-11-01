@@ -697,7 +697,10 @@ function stopResize(e) {
     window.removeEventListener('mouseup', stopResize, false)
 } */
 
-document.getElementById('virtualBrowser').addEventListener('did-finish-load', () => {document.getElementById('previewURL').value = document.getElementById('virtualBrowser').getURL();});
+document.getElementById('virtualBrowser').addEventListener('did-finish-load', () => {
+    document.getElementById('previewTitle').textContent = document.getElementById('virtualBrowser').getTitle();
+    document.getElementById('previewURL').value = document.getElementById('virtualBrowser').getURL();
+});
 
 function changePreviewZoom(val) {
     if (!Number(val) || val < 0) return false;
@@ -1194,3 +1197,28 @@ function writePowershell(val) {
     ps.addCommand(`${val}`);
     ps.invoke();
 } */
+
+function openModal({title, content, buttons}){
+    const mainModal = $("#mainModal");
+    const mainModalTitle = $("#mainModal .modalTitle");
+    
+}
+
+openModal({
+    title: 'Select Encoding',
+    content: 'Hello World!',
+    buttons: [
+        {
+            text: 'LF',
+            onclick() {
+
+            }
+        },
+        {
+            text: 'CRLF',
+            onclick() {
+                
+            }
+        }
+    ]
+});
