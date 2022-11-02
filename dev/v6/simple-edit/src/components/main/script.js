@@ -1,31 +1,15 @@
+// Not running in electron
+if (navigator.userAgent.toLowerCase().indexOf('electron') <= -1 || !(window && window.process && window.process.type)) {
+    location.replace('../about/index.html');
+    throw new Error("Redirecting..."); // Stops code from working
+}
+
 var $ = require('jquery');
 const fs = require("fs");
 const path = require("path");
 
 const { ipcRenderer } = require('electron');
 const ipc = ipcRenderer;
-
-/* function appControlEvt(event){
-    switch (event){
-        case 'minimize':
-            ipc.send('minimizeApp');
-            break;
-        case 'maximize':
-            ipc.send('maximizeApp');
-            break;
-        case 'close':
-            ipc.send('closeApp');
-            break;
-        case 'devtools':
-            ipc.send('devTools');
-            break;
-        case 'openfiledlg':
-            ipc.send('openFileDlg');
-            break;
-        default:
-            return false;
-    }
-} */
 
 $(".ipcMinimize").on('click', () => {
     simpleEdit.window.minimize();
@@ -87,13 +71,10 @@ function setContext(config){
             {
                 name: "se-newFile",
                 displayName: "New File",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'n'
-                    }
-                ],
-                global: true,
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'n'
+                },
                 run() {
                     simpleEdit.file.new();
                 }
@@ -101,14 +82,11 @@ function setContext(config){
             {
                 name: "se-newWindow",
                 displayName: "New Window",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        shiftKey: true,
-                        key: 'n'
-                    }
-                ],
-                global: true,
+                accelerator: {
+                    ctrlKey: true,
+                    shiftKey: true,
+                    key: 'n'
+                },
                 run() {
                     simpleEdit.window.create();
                 }
@@ -119,13 +97,10 @@ function setContext(config){
             {
                 name: "se-openFile",
                 displayName: "Open File",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'o'
-                    }
-                ],
-                global: true,
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'o'
+                },
                 run() {
                     simpleEdit.file.openDlg();
                 }
@@ -133,14 +108,11 @@ function setContext(config){
             {
                 name: "se-openRecent",
                 displayName: "Open Recent",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        shiftKey: true,
-                        key: 'o'
-                    }
-                ],
-                global: true,
+                accelerator: {
+                    ctrlKey: true,
+                    shiftKey: true,
+                    key: 'o'
+                },
                 run() {
                     simpleEdit.window.recent();
                 }
@@ -151,13 +123,10 @@ function setContext(config){
             {
                 name: "se-save",
                 displayName: "Save",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 's'
-                    }
-                ],
-                global: true,
+                accelerator: {
+                    ctrlKey: true,
+                    key: 's'
+                },
                 run() {
                     simpleEdit.file.save();
                 }
@@ -165,14 +134,11 @@ function setContext(config){
             {
                 name: "se-saveAs",
                 displayName: "Save As",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        shiftKey: true,
-                        key: 's'
-                    }
-                ],
-                global: true,
+                accelerator: {
+                    ctrlKey: true,
+                    shiftKey: true,
+                    key: 's'
+                },
                 run() {
                     simpleEdit.file.saveAs();
                 }
@@ -190,12 +156,10 @@ function setContext(config){
             {
                 name: "se-closeWindow",
                 displayName: "Close Window",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'w'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'w'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.window.close();
@@ -206,12 +170,10 @@ function setContext(config){
             {
                 name: "se-undo",
                 displayName: "Undo",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'z'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'z'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.undo();
@@ -220,12 +182,10 @@ function setContext(config){
             {
                 name: "se-redo",
                 displayName: "Redo",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'y'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'y'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.redo();
@@ -237,12 +197,10 @@ function setContext(config){
             {
                 name: "se-cut",
                 displayName: "Cut",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'x'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'x'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.cut();
@@ -251,12 +209,10 @@ function setContext(config){
             {
                 name: "se-copy",
                 displayName: "Copy",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'c'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'c'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.copy();
@@ -265,12 +221,10 @@ function setContext(config){
             {
                 name: "se-paste",
                 displayName: "Paste",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'v'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'v'
+                },
                 alreadyRegistered: false,
                 run() {
                     simpleEdit.editor.paste();
@@ -282,12 +236,10 @@ function setContext(config){
             {
                 name: "se-find",
                 displayName: "Find",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'f'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'f'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.find();
@@ -296,12 +248,10 @@ function setContext(config){
             {
                 name: "se-replace",
                 displayName: "Replace",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'h'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'h'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.replace();
@@ -313,12 +263,10 @@ function setContext(config){
             {
                 name: "se-selectAll",
                 displayName: "Select All",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'a'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'a'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.selectAll();
@@ -330,12 +278,10 @@ function setContext(config){
             {
                 name: "se-lineComment",
                 displayName: "Line Comment",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: '\u00A7'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: '\u00A7' // Special chars
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.comment.toggleLine();
@@ -344,13 +290,11 @@ function setContext(config){
             {
                 name: "se-blockComment",
                 displayName: "Block Comment",
-                accelerator: [
-                    {
-                        altKey: true,
-                        shiftKey: true,
-                        key: 'a'
-                    }
-                ],
+                accelerator: {
+                    altKey: true,
+                    shiftKey: true,
+                    key: 'a'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.comment.toggleBlock();
@@ -361,16 +305,10 @@ function setContext(config){
             {
                 name: "se-changeLanguage",
                 displayName: "Change Language",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'k'
-                    },
-                    {
-                        ctrlKey: true,
-                        key: 'm'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'i'
+                },
                 run() {
                     simpleEdit.editor.language.change();
                 }
@@ -395,12 +333,10 @@ function setContext(config){
             {
                 name: "se-gotoLine",
                 displayName: "Goto Line",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'g'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'g'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.gotoLine();
@@ -412,26 +348,22 @@ function setContext(config){
             {
                 name: "se-changeSpacing",
                 displayName: "Change Spacing",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        key: 'e'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'e'
+                },
                 run() {
-                    simpleEdit.editor.spacing.change();
+                    simpleEdit.editor.spacing.change.showMenu();
                 }
             },
             {
                 name: "se-changeEndOfLine",
                 displayName: "Change End of Line Sequence",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        shiftKey: true,
-                        key: 'e'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    shiftKey: true,
+                    key: 'e'
+                },
                 run() {
                     simpleEdit.editor.endofline.change();
                 }
@@ -451,13 +383,11 @@ function setContext(config){
             {
                 name: "se-toggleDevTools",
                 displayName: "Toggle Dev Tools",
-                accelerator: [
-                    {
-                        ctrlKey: true,
-                        shiftKey: true,
-                        key: 'i'
-                    }
-                ],
+                accelerator: {
+                    ctrlKey: true,
+                    shiftKey: true,
+                    key: 'i'
+                },
                 alreadyRegistered: true,
                 run() {
                     simpleEdit.window.devTools.toggle();
@@ -517,79 +447,30 @@ function loadContext(appendTo, config) {
                 menuDropdownButton.append(menuDropdownButtonLbl);
 
                 if (item.accelerator) {
-                    let keyComb = [];
+                    let keyInscance = [];
+                    if (item.accelerator.ctrlKey) keyInscance.push("CTRL");
+                    if (item.accelerator.altKey) keyInscance.push("ALT");
+                    if (item.accelerator.shiftKey) keyInscance.push("SHIFT");
+                    keyInscance.push(item.accelerator.key.toUpperCase());
 
-                    item.accelerator.forEach(comb => {
-                        let keyInscance = [];
-                        if (comb.ctrlKey) keyInscance.push("CTRL");
-                        if (comb.altKey) keyInscance.push("ALT");
-                        if (comb.shiftKey) keyInscance.push("SHIFT");
-                        keyInscance.push(comb.key.toUpperCase());
-                        keyComb.push(keyInscance.join(" + "));
-                    });
-
-                    const keyShortcut = $("<span>", { class: 'keyShortcut', text: keyComb.join(", ") });
+                    const keyShortcut = $("<span>", { class: 'keyShortcut', text: keyInscance.join(" + ") });
                     menuDropdownButton.append(keyShortcut);
 
                     if (!item.alreadyRegistered) {
-                        if (item.global) {
-                            if (item.accelerator > 1) throw new Error("A global keyCombination cannot be complex!"); 
-                            $(document).on('keydown', (e) => {
-                                const ctrlKey = (item.accelerator[0].ctrlKey)?true:false;
-                                const altKey = (item.accelerator[0].altKey)?true:false;
-                                const shiftKey = (item.accelerator[0].shiftKey)?true:false;
-                                const key = item.accelerator[0].key.toUpperCase();
-                                
-                                const eventKey = e.key.toUpperCase();
+                        $(document).on('keydown', (e) => {
+                            const ctrlKey = (item.accelerator.ctrlKey)?true:false;
+                            const altKey = (item.accelerator.altKey)?true:false;
+                            const shiftKey = (item.accelerator.shiftKey)?true:false;
+                            const key = item.accelerator.key.toUpperCase();
+                            
+                            const eventKey = e.key.toUpperCase();
 
-                                /* console.log(ctrlKey, e.ctrlKey, altKey, e.altKey, shiftKey, e.shiftKey, key, eventKey)
-                                console.log((ctrlKey == e.ctrlKey), (altKey == e.altKey), (shiftKey == e.shiftKey), (key == eventKey)) */
-                                if ((ctrlKey == e.ctrlKey) && (altKey == e.altKey) && (shiftKey == e.shiftKey) && (key == eventKey)) {
-                                    item.run();
-                                }
-                            });
-                        }/*  else {
-                            const keyConfig = item.accelerator;
-                            const keybinding = [];
-                            for (let i = 0; i < keyConfig.length; i++) {
-                                keybinding[i] = (keyConfig.ctrlKey)?monaco.KeyMod.CtrlCmd:null || (keyConfig.altKey)?monaco.KeyMod.AltCmd:null || (keyConfig.shiftKey)?monaco.KeyMod.ShiftCmd:null;
+                            /* console.log(ctrlKey, e.ctrlKey, altKey, e.altKey, shiftKey, e.shiftKey, key, eventKey)
+                            console.log((ctrlKey == e.ctrlKey), (altKey == e.altKey), (shiftKey == e.shiftKey), (key == eventKey)) */
+                            if ((ctrlKey == e.ctrlKey) && (altKey == e.altKey) && (shiftKey == e.shiftKey) && (key == eventKey)) {
+                                item.run();
                             }
-                            const keybindingChord = monaco.KeyMod.chord();
-
-                            mainEditor.addAction({
-                                // An unique identifier of the contributed action.
-                                id: item.name + '_custom',
-                            
-                                // A label of the action that will be presented to the user.
-                                label: item.displayName,
-                            
-                                // An optional array of keybindings for the action.
-                                keybindings: [
-                                    monaco.KeyMod.CtrlCmd | monaco.KeyCode.F10,
-                                    // chord
-                                    monaco.KeyMod.chord(
-                                        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
-                                        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyM
-                                    )
-                                ],
-                            
-                                // A precondition for this action.
-                                precondition: null,
-                            
-                                // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
-                                keybindingContext: null,
-                            
-                                contextMenuGroupId: 'navigation',
-                            
-                                contextMenuOrder: 1.5,
-                            
-                                // Method that will be executed when the action is triggered.
-                                // @param editor The editor instance is passed in as a convenience
-                                run: function (ed) {
-                                    alert("i'm running => " + ed.getPosition());
-                                }
-                            });
-                        } */
+                        });
                     }
                 }
 
@@ -626,16 +507,10 @@ $("body").click((e) => {
 });
 
 $(document).on('keydown', (e) => {
-    /* if((e.ctrlKey || e.altKey || e.shiftKey) && e.key) { //keyboard shortcut
-        if (mainEditor.hasTextFocus()) { //Global Monaco keys
-            if (e.ctrlKey && e.key == 'n') simpleEdit.file.new();
-        }
-
-        return;
-    } */
     switch (e.key){
         case "Escape":
             $(".menuDropdownContent").hide();
+            simpleEdit.modal.close();
             break;
         default:
             break;
@@ -700,6 +575,10 @@ function stopResize(e) {
 document.getElementById('virtualBrowser').addEventListener('did-finish-load', () => {
     document.getElementById('previewTitle').textContent = document.getElementById('virtualBrowser').getTitle();
     document.getElementById('previewURL').value = document.getElementById('virtualBrowser').getURL();
+});
+
+ipc.on('openFile', (evt, args) => {
+    console.log(args);
 });
 
 function changePreviewZoom(val) {
@@ -885,8 +764,12 @@ $(".lineData").click(() => {
 });
 
 ipcRenderer.on('openFile', function (event, data) {
-    alert(data);
+    simpleEdit.file.open(data);
 });
+
+/* window.onbeforeunload = e => {
+    e.returnValue = false;
+}; */
 
 const simpleEdit = {
     file: {
@@ -995,7 +878,29 @@ const simpleEdit = {
         },
         keyMapping: {
             show() {
-                alert("keyMapping");
+                const content = $("<div>");
+                Object.keys(mainCtxMenu).forEach(k => {
+                    mainCtxMenu[k].forEach(e => {
+                        if (e.accelerator) {
+                            console.log(e)
+                            let keyInscance = [];
+                            if (e.accelerator.ctrlKey) keyInscance.push("CTRL");
+                            if (e.accelerator.altKey) keyInscance.push("ALT");
+                            if (e.accelerator.shiftKey) keyInscance.push("SHIFT");
+                            keyInscance.push(e.accelerator.key.toUpperCase());
+    
+                            const comb = $("<div>");
+                            comb.append($("<span>", { text: e.displayName }));
+                            comb.append($("<span>", { class: 'keyCombination', text: keyInscance.join(" + ") }));
+    
+                            content.append(comb);
+                        }
+                    });
+                });
+                simpleEdit.modal.open({
+                    title: 'Key Mapping',
+                    content: content.get(0)
+                });
             }
         },
         about: {
@@ -1007,6 +912,45 @@ const simpleEdit = {
             show() {
                 alert("recent");
             }
+        }
+    },
+    modal: {
+        open({title, content, buttons}) {
+            const mainModal = $("#mainModal");
+            
+            const mainModalTitle = $("#mainModal .modalTitle");
+            const mainModalContent = $("#mainModal .modalContent");
+            const mainModalActions = $("#mainModal .modalActions");
+        
+            mainModalTitle.empty();
+            mainModalContent.empty();
+            mainModalActions.empty();
+        
+            mainModalTitle.text(title);
+            mainModalContent.html(content);
+            
+            if (buttons) {
+                buttons.forEach(e => {
+                    const modalBtn = $("<button>", { class: 'modalButton', text: e.text });
+                    modalBtn.on('click', (evt) => {
+                        e.onclick(evt);
+                        simpleEdit.modal.close();
+                    });
+            
+                    mainModalActions.append(modalBtn);
+                });
+            }
+        
+            mainModal.show();
+        },
+        close() {
+            const mainModal = $("#mainModal");
+
+            mainModal.hide();
+            
+            $("#mainModal .modalTitle").empty();
+            $("#mainModal .modalContent").empty();
+            $("#mainModal .modalActions").empty();
         }
     },
     system: {
@@ -1091,6 +1035,26 @@ const simpleEdit = {
         },
         spacing: {
             change: {
+                showMenu() {
+                    simpleEdit.modal.open({
+                        title: 'Select Intentation',
+                        content: '<small><i>You can choose the Tab Size later.</i><small>',
+                        buttons: [
+                            {
+                                text: 'Spaces',
+                                onclick() {
+                                    simpleEdit.editor.spacing.change.toSpaces();
+                                }
+                            },
+                            {
+                                text: 'Tabs',
+                                onclick() {
+                                    simpleEdit.editor.spacing.change.toTabs();
+                                }
+                            }
+                        ]
+                    });
+                },
                 toSpaces() {
                     triggerMonacoEvt('editor.action.indentUsingSpaces');
                 },
@@ -1131,94 +1095,26 @@ const simpleEdit = {
                 return eol;
             },
             change() {
-                alert("Change End of Line");
+                simpleEdit.modal.open({
+                    title: 'Select End of Line Sequence',
+                    content: '',
+                    buttons: [
+                        {
+                            text: 'LF',
+                            onclick() {
+                                simpleEdit.editor.endofline.set('LF');
+                            }
+                        },
+                        {
+                            text: 'CRLF',
+                            onclick() {
+                                simpleEdit.editor.endofline.set('CRLF');
+                            }
+                        }
+                    ]
+                });
             }
         }
     }
 }
 simpleEdit.security.warnConsole("Stop!", "Don't enter anything, unless you know what you're doing!");
-
-// Experimental
-
-/* var term = new Terminal();
-term.open(document.getElementById('mainConsole'));
-term.onData(d => {
-    ipc.send('term.toTerminal', d);
-});
-
-ipc.on('term.toClient', (event, data) => {
-    term.clear();
-    term.write(data);
-}); */
-
-/*  **DEPRECATED, REMOVE**
-const shell = require('node-powershell');
-
-var ps = new Set;
-ps.toArray = () => {
-    return Array.from(ps);
-};
-function startPS(pwsh=false, inputEncoding='utf8', outputEncoding='utf8') {
-    let process;
-    try{
-        process = new shell({
-            executionPolicy: 'Bypass',
-            noProfile: true,
-            pwshPrev: pwsh,
-            inputEncoding,
-            outputEncoding
-        });
-    } catch (err) {
-        return err;
-    }
-    process.on('output', output => {
-        console.log(output);
-    });
-
-    process.on('err', output => {
-        console.error(output);
-    });
-
-    process.on('end', output => {
-        ps.delete(process);
-    });
-
-    process.run = (val) => {
-        process.addCommand(val);
-        process.invoke();
-    };
-
-    ps.add(process);
-
-    return process;
-}
-
-function writePowershell(val) {
-    ps.addCommand(`${val}`);
-    ps.invoke();
-} */
-
-function openModal({title, content, buttons}){
-    const mainModal = $("#mainModal");
-    const mainModalTitle = $("#mainModal .modalTitle");
-    
-}
-
-openModal({
-    title: 'Select Encoding',
-    content: 'Hello World!',
-    buttons: [
-        {
-            text: 'LF',
-            onclick() {
-
-            }
-        },
-        {
-            text: 'CRLF',
-            onclick() {
-                
-            }
-        }
-    ]
-});

@@ -96,6 +96,15 @@ const createWindow = async ({minWidth, minHeight, width, height, frame, transpar
     windows.delete(newWindow);
     newWindow = null;
   });
+
+  if (windows.size <= 1) {
+    newWindow.webContents.once('did-finish-load', () => {
+      const openFilePath = process.argv[1];
+      if (openFilePath){
+        newWindow.webContents.send('openFile', openFilePath);
+      }
+    })
+  }
   
   newWindow.loadFile(path.join(componentDir, file));
   newWindow.setBackgroundColor('#1f232a')
@@ -154,10 +163,6 @@ ipc.on('newMainWindow', () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   createWindow(windowTemplates["main"]);
-  const openFilePath = process.argv[1];
-  if (openFilePath != ""){
-    BrowserWindow.getFocusedWindow.webContents.send('openFile', openFilePath);
-  }
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
