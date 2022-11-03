@@ -1,28 +1,56 @@
-// Not running in electron
+// Not running in Electron
 if (navigator.userAgent.toLowerCase().indexOf('electron') <= -1 || !(window && window.process && window.process.type)) {
     location.replace('../about/index.html');
-    throw new Error("Redirecting..."); // Stops code from working
+    throw new Error("Redirecting..."); // Stops code from running
 }
+
+// Require
+const { ipcRenderer, dialog } = require('electron');
+const ipc = ipcRenderer;
 
 var $ = require('jquery');
 const fs = require("fs");
 const path = require("path");
 
-const { ipcRenderer } = require('electron');
-const ipc = ipcRenderer;
+// Global manual events (default)
+function defineDefaultGEvt() {
+    // WindowControlBtn
+    $(".ipcMinimize").on('click', () => {
+        simpleEdit.window.minimize();
+    });
 
-$(".ipcMinimize").on('click', () => {
-    simpleEdit.window.minimize();
-});
+    $(".ipcMaximize").on('click', () => {
+        simpleEdit.window.maximize();
+    });
 
-$(".ipcMaximize").on('click', () => {
-    simpleEdit.window.maximize();
-});
+    $(".ipcClose").on('click', () => {
+        simpleEdit.window.close();
+    });
 
-$(".ipcClose").on('click', () => {
-    simpleEdit.window.close();
-});
+    // Menu closing
+    $(document).on('keydown', (e) => {
+        switch (e.key) {
+            case "Escape":
+                $(".menuDropdownContent").hide();
+                simpleEdit.modal.close();
+                break;
+            default:
+                break;
+        }
+    });
 
+    $("body").on('click', (e) => {
+        if ($(e.target).parents(".menuDropdownContent").length) {return;} // Is a dropdownButton
+        $(".menuDropdownContent").hide();
+    });
+
+    $(window).blur(() => { // unfocus
+        $(".menuDropdownContent").hide();
+    });
+}
+
+// Load Monaco framework
+var mainEditor;
 function loadMonacoThemes() {
     monaco.editor.defineTheme('simpleEditDark', {
         base: 'vs-dark',
@@ -39,7 +67,7 @@ function loadMonacoThemes() {
             'editor.hoverHighlightBackground': '#4f5a6e',
             'editor.findMatchHighlightBackground': '#535c6a',
             'editor.findMatchBackground': '#6e7d8d',
-            'editor.selectionHighlightBackground': '#5c6a79',
+            'editor.selectionHighlightBackground': '#46515d',
             'editor.inactiveSelectionBackground': '#264f79',
             'editorWidget.background': '#252a34',
             'dropdown.background': '#252a34'
@@ -47,13 +75,12 @@ function loadMonacoThemes() {
     });
 }
 
-var mainEditor; //global
-function loadMonaco(div, val, lang){
+function loadMonaco(div, val, lang) {
     $(div).empty();
     loadMonacoThemes();
     mainEditor = monaco.editor.create(document.querySelector(div), {
         value: val || "",
-        language: lang || 'text',
+        language: lang || 'text', // default is '(plain)text'
         lineNumbers: 'on',
         roundedSelection: false,
         scrollBeyondLastLine: false,
@@ -62,10 +89,27 @@ function loadMonaco(div, val, lang){
         automaticLayout: true
     });
 }
-loadMonaco("#mainEditor");
 
-var mainCtxMenu; //global
-function setContext(config){
+function triggerMonacoEvt(action, editor=mainEditor) { // trigger editor event
+    editor.focus();
+    editor.trigger('action', action);
+}
+
+function defineDefaultMEvt() {
+    mainEditor.getModel().onDidChangeContent((evt) => {
+        if (simpleEdit.file.current && simpleEdit.file.autoSave.status) { // file open and autosave on
+            simpleEdit.file.save();
+        }
+    });
+
+    mainEditor.onDidChangeCursorPosition((evt) => {
+        simpleEdit.editor.ui.update();
+    });
+}
+
+// Load context menu
+var mainCtxMenu;
+function setContext(config) {
     mainCtxMenu = config || {
         "File": [
             {
@@ -147,11 +191,11 @@ function setContext(config){
                 separator: true
             },
             {
-                name: "se-settings",
-                displayName: "Settings"
-            },
-            {
-                separator: true
+                name: "se-closeFile",
+                displayName: "Close File",
+                run() {
+                    simpleEdit.file.close();
+                }
             },
             {
                 name: "se-closeWindow",
@@ -261,6 +305,18 @@ function setContext(config){
                 separator: true
             },
             {
+                name: "se-gotoLine",
+                displayName: "Goto Line",
+                accelerator: {
+                    ctrlKey: true,
+                    key: 'g'
+                },
+                alreadyRegistered: true,
+                run() {
+                    simpleEdit.editor.gotoLine();
+                }
+            },
+            {
                 name: "se-selectAll",
                 displayName: "Select All",
                 accelerator: {
@@ -299,48 +355,6 @@ function setContext(config){
                 run() {
                     simpleEdit.editor.comment.toggleBlock();
                 }
-            }
-        ],
-        "Document": [
-            {
-                name: "se-changeLanguage",
-                displayName: "Change Language",
-                accelerator: {
-                    ctrlKey: true,
-                    key: 'i'
-                },
-                run() {
-                    simpleEdit.editor.language.change();
-                }
-            },
-            {
-                name: "se-languageDocs",
-                displayName: "Language Docs",
-                run() {
-                    simpleEdit.editor.language.openDocs();
-                }
-            },
-            {
-                name: "se-learnLanguage",
-                displayName: "Learn Language",
-                run() {
-                    simpleEdit.editor.language.openLearn();
-                }
-            },
-            {
-                separator: true
-            },
-            {
-                name: "se-gotoLine",
-                displayName: "Goto Line",
-                accelerator: {
-                    ctrlKey: true,
-                    key: 'g'
-                },
-                alreadyRegistered: true,
-                run() {
-                    simpleEdit.editor.gotoLine();
-                }
             },
             {
                 separator: true
@@ -366,16 +380,6 @@ function setContext(config){
                 },
                 run() {
                     simpleEdit.editor.endofline.change();
-                }
-            },
-            {
-                separator: true
-            },
-            {
-                name: "se-saveAsTemplate",
-                displayName: "Save as Template",
-                run() {
-                    simpleEdit.file.saveAsTemplate();
                 }
             }
         ],
@@ -424,10 +428,10 @@ function setContext(config){
 function loadContext(appendTo, config) {
     setContext(config);
 
-    const parentE = $(appendTo);
+    const parentE = $(appendTo); // root of context
     parentE.empty();
 
-    Object.keys(mainCtxMenu).forEach(key => {
+    Object.keys(mainCtxMenu).forEach(key => { // foreach category
         const menuDropdown = $("<div>", { class: 'menuDropdown' });
         parentE.append(menuDropdown);
 
@@ -435,8 +439,8 @@ function loadContext(appendTo, config) {
         const menuDropdownContent = $("<div>", { class: 'menuDropdownContent' });
         menuDropdown.append(menuDropdownTitle, menuDropdownContent);
 
-        mainCtxMenu[key].forEach(item => {
-            if (item.separator) {
+        mainCtxMenu[key].forEach(item => { // foreach context element
+            if (item.separator) { // separator -> not clickable
                 const separator = $("<div>", { class: 'menuDropdownSeparator' });
                 menuDropdownContent.append(separator);
             } else {
@@ -446,18 +450,18 @@ function loadContext(appendTo, config) {
                 const menuDropdownButtonLbl = $("<span>", { class: 'menuDropdownButtonLbl', text: item.displayName });
                 menuDropdownButton.append(menuDropdownButtonLbl);
 
-                if (item.accelerator) {
-                    let keyInscance = [];
+                if (item.accelerator) { // shortcut
+                    let keyInscance = []; // stores combination
                     if (item.accelerator.ctrlKey) keyInscance.push("CTRL");
                     if (item.accelerator.altKey) keyInscance.push("ALT");
                     if (item.accelerator.shiftKey) keyInscance.push("SHIFT");
                     keyInscance.push(item.accelerator.key.toUpperCase());
 
-                    const keyShortcut = $("<span>", { class: 'keyShortcut', text: keyInscance.join(" + ") });
+                    const keyShortcut = $("<span>", { class: 'keyShortcut', text: keyInscance.join(" + ") }); // human readable
                     menuDropdownButton.append(keyShortcut);
 
-                    if (!item.alreadyRegistered) {
-                        $(document).on('keydown', (e) => {
+                    if (!item.alreadyRegistered) { // if true, mostly Monaco keyEvent
+                        $(document).on('keydown', (e) => { // register key combination
                             const ctrlKey = (item.accelerator.ctrlKey)?true:false;
                             const altKey = (item.accelerator.altKey)?true:false;
                             const shiftKey = (item.accelerator.shiftKey)?true:false;
@@ -465,17 +469,12 @@ function loadContext(appendTo, config) {
                             
                             const eventKey = e.key.toUpperCase();
 
-                            /* console.log(ctrlKey, e.ctrlKey, altKey, e.altKey, shiftKey, e.shiftKey, key, eventKey)
-                            console.log((ctrlKey == e.ctrlKey), (altKey == e.altKey), (shiftKey == e.shiftKey), (key == eventKey)) */
-                            if ((ctrlKey == e.ctrlKey) && (altKey == e.altKey) && (shiftKey == e.shiftKey) && (key == eventKey)) {
-                                item.run();
-                            }
+                            if ((ctrlKey == e.ctrlKey) && (altKey == e.altKey) && (shiftKey == e.shiftKey) && (key == eventKey)) item.run();
                         });
                     }
                 }
 
-                // add action
-                if (item.run) {
+                if (item.run) { // add action for button
                     $(menuDropdownButton).on('click', () => {
                         item.run();
                         $(menuDropdownButton).parents(".menuDropdownContent").hide();
@@ -486,65 +485,44 @@ function loadContext(appendTo, config) {
     });
 
 }
-loadContext("#mainMenuStrip");
 
-$(".menuDropdown, .menuDropdownTitle").click((e) => {
-    var target = ($(e.target).hasClass("menuDropdownTitle"))?$(e.target).parent():e.target;
-    var dropDownContent = $(target).children(".menuDropdownContent");
-    var targetPos = $(target).position();
-    var targetSize = {"width": $(target).width(), "height": $(target).height()};
-    dropDownContent.css({"top": targetPos.top+targetSize.height, "left": targetPos.left});
-    if (dropDownContent.is(":visible")){
-        setTimeout(() => {dropDownContent.hide();}, 50);
-    } else{
-        setTimeout(() => {dropDownContent.show();}, 50);
-    }
-});
+// Dropdown / context logic
+function loadDropdownLogic() {
+    $(".menuDropdown, .menuDropdownTitle").on('click', (e) => {
+        var target = ($(e.target).hasClass("menuDropdownTitle"))?$(e.target).parent():e.target; // root element of dropdown menu
+        var dropdownContent = $(target).children(".menuDropdownContent"); // content of dropdown menu
+        var targetPos = $(target).position(); // root pos
+        var targetSize = {"width": $(target).width(), "height": $(target).height()}; // dropdown menu size
+        dropdownContent.css({"top": targetPos.top+targetSize.height, "left": targetPos.left}); // append pos of root to menu
+        if (dropdownContent.is(":visible")) {
+            setTimeout(() => {dropdownContent.hide();}, 50); // setTimeout because of the 'blur' event, can be removed because it is only a graphical correction
+        } else {
+            setTimeout(() => {dropdownContent.show();}, 50); // setTimeout because of the 'blur' event, can be removed because it is only a graphical correction
+        }
+    });
+}
 
-$("body").click((e) => {
-    if ($(e.target).parents(".menuDropdownContent").length){return;}
-    $(".menuDropdownContent").hide();
-});
-
-$(document).on('keydown', (e) => {
-    switch (e.key){
-        case "Escape":
-            $(".menuDropdownContent").hide();
-            simpleEdit.modal.close();
-            break;
-        default:
-            break;
-    }
-});
-
-$(window).blur(()=>{
-    $(".menuDropdownContent").hide();
-});
-
-/* $(window).resize((e) => {
-    loadMonaco("#mainEditor", mainEditor.getValue(), $(".search").val());
-}); */
-
-function appendLang(target){
-    monaco.editor.setModelLanguage(mainEditor.getModel(), $(target).val());
+// Changes language to selected one -> bad code -> should be corrected in v2
+function appendLang(target) {
+    simpleEdit.editor.language.set($(target).val());
     const docsURL = $(target).find("option:selected").attr("data-docsURL");
     const learnURL = $(target).find("option:selected").attr("data-learnURL");
-    if (docsURL == "undefined"){
+    if (docsURL == "undefined") {
         $(".docsIcon").attr("onclick", "");
         $(".docsIcon").hide();
-    } else{
+    } else {
         $(".docsIcon").attr("onclick", "ipc.send('openExtURL', '" + docsURL +"')");
         $(".docsIcon").show();
     }
-    if (learnURL == "undefined"){
+    if (learnURL == "undefined") {
         $(".learnIcon").attr("onclick", "");
         $(".learnIcon").hide();
-    } else{
+    } else {
         $(".learnIcon").attr("onclick", "ipc.send('openExtURL', '" + learnURL +"')");
         $(".learnIcon").show();
     }
-    if (mainEditor.getModel().getLanguageIdentifier().language != $(target).val()){
-        loadLanguageList(programmingLanguages);
+    if (mainEditor.getModel().getLanguageIdentifier().language != $(target).val()) { // if not valid lang
+        loadLanguageList(simpleEdit.editor.language.registry); // set lang to default
         alert("An error occured while changing the language.");
     }
 }
@@ -553,29 +531,21 @@ $(".search").change((e)=>{
     appendLang(e.target);
 });
 
-
-/* var resizePreview = document.getElementById("resizePreview");
-resizePreview.addEventListener('mousedown', initResize);
-var previewDiv = document.getElementById("mainPreview");
-
-function initResize(e) {
-    window.addEventListener('mousemove', resize, false);
-    window.addEventListener('mouseup', stopResize, false)
+// load languages in dropdown
+function loadLanguageList(list) {
+    $(".search").empty();
+    list.forEach(e => {
+        const defaultStr = (e.isDefault)?" selected":"";
+        $(".search").append('<option value="' + e.name + '" data-docsURL="' + e.docs + '" data-learnURL="' + e.learn + '"' + defaultStr + '>' + e.displayname + '</option>');
+    });
+    appendLang(".search");
 }
-
-function resize(e) {
-    previewDiv.style.height = (e.clientY - previewDiv.offsetTop) + 'px'; //- previewDiv.offsetTop
-}
-
-function stopResize(e) {
-    window.removeEventListener('mousemove', resize, false);
-    window.removeEventListener('mouseup', stopResize, false)
-} */
 
 document.getElementById('virtualBrowser').addEventListener('did-finish-load', () => {
     document.getElementById('previewTitle').textContent = document.getElementById('virtualBrowser').getTitle();
     document.getElementById('previewURL').value = document.getElementById('virtualBrowser').getURL();
 });
+
 
 ipc.on('openFile', (evt, args) => {
     console.log(args);
@@ -585,178 +555,6 @@ function changePreviewZoom(val) {
     if (!Number(val) || val < 0) return false;
     
     $("#mainPreview").css('height', 'calc(' + val + '%' + ' + ' + '22px');
-}
-
-function changeLang(lang, target){
-    monaco.editor.setModelLanguage(mainEditor.getModel(), lang);
-    $(target).val(lang);
-}
-
-class programmingLanguage{
-    constructor(displayname, name, extensions, docs, learn, isDefault){
-        this.displayname = displayname;
-        this.name = name;
-        this.extensions = extensions;
-        this.docs = undefined || docs;
-        this.learn = undefined || learn;
-        this.isDefault = false || isDefault;
-    }
-}
-
-var programmingLanguages = [
-    new programmingLanguage("Batch", "bat", ["bat", "cmd"], undefined, "https://www.tutorialspoint.com/batch_script/index.htm"),
-    new programmingLanguage("C", "c", ["c", "i"], "https://devdocs.io/c/", "https://www.w3schools.com/c/index.php"),
-    new programmingLanguage("C#", "csharp", ["cs", "csx", "cake"], "https://learn.microsoft.com/en-us/dotnet/csharp/", "https://www.w3schools.com/cs/index.php"),
-    new programmingLanguage("C++", "cpp", ["cpp", "cc", "cxx", "c++", "hpp", "hh", "hxx", "h++", "h", "i"], "https://devdocs.io/cpp/", "https://www.w3schools.com/cpp/default.asp"),
-    new programmingLanguage("Clojure", "clojure", ["clj", "cljs", "cljc", "clojure", "edn"], "https://clojure.org/index", "https://clojure.org/guides/learn/clojure"),
-    new programmingLanguage("CoffeeScript", "coffeescript", ["coffee", "cson", "iced"], "https://coffeescript.org/#introduction", "https://www.tutorialspoint.com/coffeescript/index.htm"),
-    new programmingLanguage("CSS", "css", ["css"], "https://developer.mozilla.org/en-US/docs/Web/CSS", "https://www.w3schools.com/css/default.asp"),
-    new programmingLanguage("Dart", "dart", ["dart"], "https://dart.dev/guides", "https://dart.dev/tutorials"),
-    new programmingLanguage("Docker", "dockerfile", ["dockerfile", "containerfile"], "https://docs.docker.com/engine/reference/builder/", undefined),
-    new programmingLanguage("F#", "fsharp", ["fs", "fsi", "fsx", "fsscript"], "https://fsharp.org/docs/", "https://fsharp.org/learn/"),
-    new programmingLanguage("Go", "go", ["go"], "https://go.dev/doc/", "https://go.dev/learn/"),
-    new programmingLanguage("HTML", "html", ["html", "htm", "shtml", "xhtml", "xht", "mdoc", "jsp", "asp", "aspx", "jshtm"], "https://developer.mozilla.org/en-US/docs/Web/HTML", "https://www.w3schools.com/html/default.asp"),
-    new programmingLanguage("Ini", "ini", ["ini"], undefined, "https://www.w3schools.io/file/ini-extension-introduction/"),
-    new programmingLanguage("Java", "java", ["java", "jav", "class"], "https://dev.java/learn/", "https://www.w3schools.com/java/default.asp"),
-    new programmingLanguage("JavaScript", "javascript", ["js", "es6", "mjs", "cjs", "pac", "jsx"], "https://developer.mozilla.org/en-US/docs/Web/JavaScript", "https://www.w3schools.com/js/default.asp"),
-    new programmingLanguage("JSON", "json", ["json", "bowerrc", "jscsrc", "webmanifest", "map", "har", "jslintrc", "jsonld"], "https://www.json.org/json-en.html", "https://www.w3schools.com/js/js_json_intro.asp"),
-    new programmingLanguage("Julia", "julia", ["jl"], "https://docs.julialang.org/en/v1/", "https://julialang.org/learning/"),
-    new programmingLanguage("Lua", "lua", ["lua"], "https://www.lua.org/docs.html", "https://www.tutorialspoint.com/lua/index.htm"),
-    new programmingLanguage("Markdown", "markdown", ["md", "mkd", "mdwn", "mdown", "markdown", "markdn", "mdtxt", "mdtext", "workbook"], "https://www.markdownguide.org/basic-syntax/", "https://www.markdowntutorial.com/"),
-    new programmingLanguage("Objective-C", "objective-c", ["m"], "https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/Introduction/Introduction.html", "https://www.tutorialspoint.com/objective_c/index.htm"),
-    new programmingLanguage("Perl", "perl", ["pl", "pm", "pod", "t", "PL", "psgi"], "https://www.perl.org/docs.html", "https://www.tutorialspoint.com/perl/index.htm"),
-    new programmingLanguage("PHP", "php", ["php", "php4", "php5", "phtml", "ctp"], "https://www.php.net/manual/en/", "https://www.w3schools.com/php/default.asp"),
-    new programmingLanguage("Plain Text", "plaintext", ["txt"], undefined, undefined, true),
-    new programmingLanguage("PowerShell", "powershell", ["ps1", "psm1", "psd1", "pssc", "psrc"], "https://learn.microsoft.com/en-us/powershell/", "https://www.tutorialspoint.com/powershell/index.htm"),
-    new programmingLanguage("Pug", "pug", ["pug", "jade"], "https://pugjs.org/api/getting-started.html", "https://www.sitepoint.com/a-beginners-guide-to-pug/"),
-    new programmingLanguage("Python", "python", ["py", "rpy", "pyw", "cpy", "gyp", "gypi", "pyi", "ipy", "pyt"], "https://docs.python.org/", "https://www.w3schools.com/python/default.asp"),
-    new programmingLanguage("R", "r", ["r", "rhistory", "rprofile", "rt"], "https://cran.r-project.org/manuals.html", "https://www.w3schools.com/r/default.asp"),
-    new programmingLanguage("reStructuredText", "restructuredtext", ["rst"], "https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html", "https://www.writethedocs.org/guide/writing/reStructuredText/"),
-    new programmingLanguage("Ruby", "ruby", ["rb", "rbx", "rjs", "gemspec", "rake", "ru", "erb", "podspec", "rbi"], "https://www.ruby-lang.org/de/documentation/", "https://www.tutorialspoint.com/ruby/index.htm"),
-    new programmingLanguage("Rust", "rust", ["rs"], "https://doc.rust-lang.org/std/", "https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition/README.html"),
-    new programmingLanguage("Shell Script", "shell", ["sh", "bash", "bashrc", "bash_aliases", "bash_profile", "bash_login", "ebuild", "profile", "bash_logout", "xprofile"], "https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html", "https://learnxinyminutes.com/docs/bash/"),
-    new programmingLanguage("SQL", "sql", ["sql", "dsql"], undefined, "https://www.w3schools.com/sql/default.asp"),
-    new programmingLanguage("Swift", "swift", ["swift"], "https://www.swift.org/documentation/", "https://docs.swift.org/swift-book/GuidedTour/GuidedTour.html"),
-    new programmingLanguage("TypeScript", "typescript", ["ts", "cts", "mts"], "https://www.typescriptlang.org/docs/", "https://www.w3schools.com/typescript/"),
-    new programmingLanguage("Visual Basic", "vb", ["vb", "brs", "vbs", "bas", "vba"], "https://learn.microsoft.com/en-us/dotnet/visual-basic/", "https://www.tutorialspoint.com/vb.net/index.htm"),
-    new programmingLanguage("XML", "xml", ["xml", "xsd", "ascx", "atom", "axml", "axaml", "bpmn", "cpt", "csl", "csproj"], "https://www.w3.org/TR/xml/", "https://www.w3schools.com/xml/default.asp"),
-    new programmingLanguage("YAML", "yaml", ["yml", "cyaml", "cyml", "yaml", "cff"], "https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html", "https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started")
-];
-
-function loadLanguageList(list){
-    $(".search").empty();
-    list.forEach(e => {
-        const defaultStr = (e.isDefault)?" selected":"";
-        $(".search").append('<option value="' + e.name + '" data-docsURL="' + e.docs + '" data-learnURL="' + e.learn + '"' + defaultStr + '>' + e.displayname + '</option>');
-    });
-    appendLang(".search");
-}
-
-loadLanguageList(programmingLanguages);
-
-/* var currentFile = ""; */
-
-/* function openFile(file, detectFileExt=false){
-    const buffer = fs.readFileSync(file);
-    const content = buffer.toString();
-    mainEditor.setValue(content);
-    if (detectFileExt){
-        const ext = path.parse(file).ext;
-        programmingLanguages.forEach(e => {
-            e.extensions.forEach(f => {
-                if('.' + f == ext){
-                    changeLang(e.name, ".search");
-                }
-            });
-        });
-    }
-    currentFile = file;
-    $(".fileName").text(path.parse(currentFile).base);
-    changeAutoSaveStatus(false, $("#autoSave"));
-} */
-
-/* function closeFile(newFileExt="plaintext"){
-    currentFile = "";
-    mainEditor.setValue("");
-    $(".fileName").text("New Document");
-    changeAutoSaveStatus(false, $("#autoSave"));
-} */
-
-/* function saveFile(file){
-    fs.writeFile(file, mainEditor.getValue(), function (err){
-        if (err) throw err;
-        console.log("Saved successfully!");
-    });
-} */
-
-/* function saveFile(){
-    if (currentFile){
-        fs.writeFile(currentFile, mainEditor.getValue(), function (err){
-            if (err) throw err;
-            console.log("Saved successfully!");
-        });
-    }
-} */
-
-/* $(".se-newFile").on('click', () => {
-    simpleEdit.file.new();
-}); */
-
-
-$(".menuDropdownButton").on('click', () => {
-
-});
-
-var autosave = false;
-
-mainEditor.getModel().onDidChangeContent((evt) => {
-    if (simpleEdit.file.current && simpleEdit.file.autoSave.status){
-        simpleEdit.file.save();
-    }
-});
-
-/* function warnUserDevTools(title, text){
-    style = {
-        title: "color:red;font-size:4rem;font-weight:bold;-webkit-text-stroke: 1px black;",
-        text: "color:red;font-size:1.5rem;font-weight:bold;"
-    };
-
-    if (title){
-        title = "%c" + title;
-        console.log(title, style["title"]);
-    }
-
-    if (text){
-        text = "%c" + text;
-        console.log(text, style["text"]);
-    }
-}
-
-warnUserDevTools("Stop!", "Don't enter anything, unless you know what you're doing!"); */
-
-mainEditor.onDidChangeCursorPosition((evt) => {
-    const pos = mainEditor.getPosition();
-    $(".lineData").text("Ln " + pos.lineNumber + ", Col " + pos.column);
-});
-
-/* function changeAutoSaveStatus(turnOn, element){
-    autosave = turnOn;
-
-    if (!currentFile && (autosave || turnOn)){
-        changeAutoSaveStatus(false, element);
-        return false;
-    }
-
-    if (element){
-        $(element).get().forEach(item => {
-            item.checked = turnOn;
-        });
-    }
-} */
-
-function triggerMonacoEvt(action, editor=mainEditor){
-    editor.focus();
-    editor.trigger('action', action);
 }
 
 $(".lineData").click(() => {
@@ -783,6 +581,26 @@ const simpleEdit = {
             } Later */ 
         },
         open(file, detectFileExt=true) {
+            file = path.resolve(file);
+
+            if (!fs.existsSync(file)) { return false; } // exists
+            if (!fs.lstatSync(file).isFile()) { return false; } // isfile
+
+            try {
+                fs.accessSync('example.txt', fs.constants.W_OK);
+            } catch (err) {
+                console.log('Opening File in read-only: ' + file);
+                simpleEdit.modal.open({
+                    title: 'Read-Only',
+                    content: 'The file you tried to open cannot be saved.',
+                    buttons: [
+                        {
+                            text: 'OK'
+                        }
+                    ]
+                });
+            }
+
             if (this.current) {
                 
             } else {
@@ -791,9 +609,9 @@ const simpleEdit = {
                 mainEditor.setValue(content);
                 if (detectFileExt) {
                     const ext = path.parse(file).ext;
-                    programmingLanguages.forEach(e => { //dep
+                    simpleEdit.editor.language.registry.forEach(e => {
                         e.extensions.forEach(f => {
-                            if('.' + f == ext){
+                            if('.' + f == ext) {
                                 changeLang(e.name, ".search");
                             }
                         });
@@ -808,7 +626,7 @@ const simpleEdit = {
             console.log("open Dlg"); //dep
         },
         save(file) {
-            fs.writeFile(file, mainEditor.getValue(), function (err){
+            fs.writeFile(file, mainEditor.getValue(), function (err) {
                 if (err) throw err;
                 console.log("Saved successfully! (" + file + ")");
             });
@@ -827,8 +645,8 @@ const simpleEdit = {
             }
         },
         save() {
-            if (this.current){
-                fs.writeFile(this.current, mainEditor.getValue(), function (err){
+            if (this.current) {
+                fs.writeFile(this.current, mainEditor.getValue(), function (err) {
                     if (err) throw err;
                     console.log("Saved successfully! (" + this.current + ")");
                 });
@@ -837,9 +655,6 @@ const simpleEdit = {
             }
         },
         saveAs() {
-
-        },
-        saveAsTemplate() {
 
         },
         close(force=false) {
@@ -933,7 +748,9 @@ const simpleEdit = {
                 buttons.forEach(e => {
                     const modalBtn = $("<button>", { class: 'modalButton', text: e.text });
                     modalBtn.on('click', (evt) => {
-                        e.onclick(evt);
+                        if (e.onclick) {
+                            e.onclick(evt);
+                        }
                         simpleEdit.modal.close();
                     });
             
@@ -958,11 +775,6 @@ const simpleEdit = {
             ipc.send('openExtURL', url);
         }
     },
-    settings: {
-        show() {
-            alert("settings");
-        }
-    },
     security: {
         warnConsole(title, text) {
             style = {
@@ -982,6 +794,12 @@ const simpleEdit = {
         }
     },
     editor: {
+        ui: {
+            update() {
+                const pos = mainEditor.getPosition();
+                $(".lineData").text("Ln " + pos.lineNumber + ", Col " + pos.column);
+            }
+        },
         undo() {
             mainEditor?.focus();
             mainEditor.getModel()?.undo();
@@ -1020,8 +838,47 @@ const simpleEdit = {
             }
         },
         language: {
-            change() {
-                alert("Change Lang");
+            registry: [
+                {"displayname":"Batch","name":"bat","extensions":["bat","cmd"],"learn":"https://www.tutorialspoint.com/batch_script/index.htm"},
+                {"displayname":"C","name":"c","extensions":["c","i"],"docs":"https://devdocs.io/c/","learn":"https://www.w3schools.com/c/index.php"},
+                {"displayname":"C#","name":"csharp","extensions":["cs","csx","cake"],"docs":"https://learn.microsoft.com/en-us/dotnet/csharp/","learn":"https://www.w3schools.com/cs/index.php"},
+                {"displayname":"C++","name":"cpp","extensions":["cpp","cc","cxx","c++","hpp","hh","hxx","h++","h","i"],"docs":"https://devdocs.io/cpp/","learn":"https://www.w3schools.com/cpp/default.asp"},
+                {"displayname":"Clojure","name":"clojure","extensions":["clj","cljs","cljc","clojure","edn"],"docs":"https://clojure.org/index","learn":"https://clojure.org/guides/learn/clojure"},
+                {"displayname":"CoffeeScript","name":"coffeescript","extensions":["coffee","cson","iced"],"docs":"https://coffeescript.org/#introduction","learn":"https://www.tutorialspoint.com/coffeescript/index.htm"},
+                {"displayname":"CSS","name":"css","extensions":["css"],"docs":"https://developer.mozilla.org/en-US/docs/Web/CSS","learn":"https://www.w3schools.com/css/default.asp"},
+                {"displayname":"Dart","name":"dart","extensions":["dart"],"docs":"https://dart.dev/guides","learn":"https://dart.dev/tutorials"},
+                {"displayname":"Docker","name":"dockerfile","extensions":["dockerfile","containerfile"],"docs":"https://docs.docker.com/engine/reference/builder/"},
+                {"displayname":"F#","name":"fsharp","extensions":["fs","fsi","fsx","fsscript"],"docs":"https://fsharp.org/docs/","learn":"https://fsharp.org/learn/"},
+                {"displayname":"Go","name":"go","extensions":["go"],"docs":"https://go.dev/doc/","learn":"https://go.dev/learn/"},
+                {"displayname":"HTML","name":"html","extensions":["html","htm","shtml","xhtml","xht","mdoc","jsp","asp","aspx","jshtm"],"docs":"https://developer.mozilla.org/en-US/docs/Web/HTML","learn":"https://www.w3schools.com/html/default.asp"},
+                {"displayname":"Ini","name":"ini","extensions":["ini"],"learn":"https://www.w3schools.io/file/ini-extension-introduction/"},
+                {"displayname":"Java","name":"java","extensions":["java","jav","class"],"docs":"https://dev.java/learn/","learn":"https://www.w3schools.com/java/default.asp"},
+                {"displayname":"JavaScript","name":"javascript","extensions":["js","es6","mjs","cjs","pac","jsx"],"docs":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","learn":"https://www.w3schools.com/js/default.asp"},
+                {"displayname":"JSON","name":"json","extensions":["json","bowerrc","jscsrc","webmanifest","map","har","jslintrc","jsonld"],"docs":"https://www.json.org/json-en.html","learn":"https://www.w3schools.com/js/js_json_intro.asp"},
+                {"displayname":"Julia","name":"julia","extensions":["jl"],"docs":"https://docs.julialang.org/en/v1/","learn":"https://julialang.org/learning/"},
+                {"displayname":"Lua","name":"lua","extensions":["lua"],"docs":"https://www.lua.org/docs.html","learn":"https://www.tutorialspoint.com/lua/index.htm"},
+                {"displayname":"Markdown","name":"markdown","extensions":["md","mkd","mdwn","mdown","markdown","markdn","mdtxt","mdtext","workbook"],"docs":"https://www.markdownguide.org/basic-syntax/","learn":"https://www.markdowntutorial.com/"},
+                {"displayname":"Objective-C","name":"objective-c","extensions":["m"],"docs":"https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/Introduction/Introduction.html","learn":"https://www.tutorialspoint.com/objective_c/index.htm"},
+                {"displayname":"Perl","name":"perl","extensions":["pl","pm","pod","t","PL","psgi"],"docs":"https://www.perl.org/docs.html","learn":"https://www.tutorialspoint.com/perl/index.htm"},
+                {"displayname":"PHP","name":"php","extensions":["php","php4","php5","phtml","ctp"],"docs":"https://www.php.net/manual/en/","learn":"https://www.w3schools.com/php/default.asp"},
+                {"displayname":"Plain Text","name":"plaintext","extensions":["txt"],"isDefault":true},
+                {"displayname":"PowerShell","name":"powershell","extensions":["ps1","psm1","psd1","pssc","psrc"],"docs":"https://learn.microsoft.com/en-us/powershell/","learn":"https://www.tutorialspoint.com/powershell/index.htm"},
+                {"displayname":"Pug","name":"pug","extensions":["pug","jade"],"docs":"https://pugjs.org/api/getting-started.html","learn":"https://www.sitepoint.com/a-beginners-guide-to-pug/"},
+                {"displayname":"Python","name":"python","extensions":["py","rpy","pyw","cpy","gyp","gypi","pyi","ipy","pyt"],"docs":"https://docs.python.org/","learn":"https://www.w3schools.com/python/default.asp"},
+                {"displayname":"R","name":"r","extensions":["r","rhistory","rprofile","rt"],"docs":"https://cran.r-project.org/manuals.html","learn":"https://www.w3schools.com/r/default.asp"},
+                {"displayname":"reStructuredText","name":"restructuredtext","extensions":["rst"],"docs":"https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html","learn":"https://www.writethedocs.org/guide/writing/reStructuredText/"},
+                {"displayname":"Ruby","name":"ruby","extensions":["rb","rbx","rjs","gemspec","rake","ru","erb","podspec","rbi"],"docs":"https://www.ruby-lang.org/de/documentation/","learn":"https://www.tutorialspoint.com/ruby/index.htm"},
+                {"displayname":"Rust","name":"rust","extensions":["rs"],"docs":"https://doc.rust-lang.org/std/","learn":"https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition/README.html"},
+                {"displayname":"Shell Script","name":"shell","extensions":["sh","bash","bashrc","bash_aliases","bash_profile","bash_login","ebuild","profile","bash_logout","xprofile"],"docs":"https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html","learn":"https://learnxinyminutes.com/docs/bash/"},
+                {"displayname":"SQL","name":"sql","extensions":["sql","dsql"],"learn":"https://www.w3schools.com/sql/default.asp"},
+                {"displayname":"Swift","name":"swift","extensions":["swift"],"docs":"https://www.swift.org/documentation/","learn":"https://docs.swift.org/swift-book/GuidedTour/GuidedTour.html"},
+                {"displayname":"TypeScript","name":"typescript","extensions":["ts","cts","mts"],"docs":"https://www.typescriptlang.org/docs/","learn":"https://www.w3schools.com/typescript/"},
+                {"displayname":"Visual Basic","name":"vb","extensions":["vb","brs","vbs","bas","vba"],"docs":"https://learn.microsoft.com/en-us/dotnet/visual-basic/","learn":"https://www.tutorialspoint.com/vb.net/index.htm"},
+                {"displayname":"XML","name":"xml","extensions":["xml","xsd","ascx","atom","axml","axaml","bpmn","cpt","csl","csproj"],"docs":"https://www.w3.org/TR/xml/","learn":"https://www.w3schools.com/xml/default.asp"},
+                {"displayname":"YAML","name":"yaml","extensions":["yml","cyaml","cyml","yaml","cff"],"docs":"https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html","learn":"https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started"}
+            ],
+            set(lang) {
+                monaco.editor.setModelLanguage(mainEditor.getModel(), lang);
             },
             openDocs() {
 
@@ -1118,3 +975,14 @@ const simpleEdit = {
     }
 }
 simpleEdit.security.warnConsole("Stop!", "Don't enter anything, unless you know what you're doing!");
+
+function init() {
+    defineDefaultGEvt();
+    loadMonaco("#mainEditor");
+    defineDefaultMEvt();
+    loadContext("#mainMenuStrip");
+    loadDropdownLogic();
+    loadLanguageList(simpleEdit.editor.language.registry);
+}
+
+init();

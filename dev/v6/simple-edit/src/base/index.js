@@ -97,10 +97,10 @@ const createWindow = async ({minWidth, minHeight, width, height, frame, transpar
     newWindow = null;
   });
 
-  if (windows.size <= 1) {
-    newWindow.webContents.once('did-finish-load', () => {
+  if (windows.size <= 1) { // First window
+    newWindow.webContents.once('did-finish-load', () => { // Check if path in args
       const openFilePath = process.argv[1];
-      if (openFilePath){
+      if (openFilePath && openFilePath != ".") { // '.' is default, no file selected
         newWindow.webContents.send('openFile', openFilePath);
       }
     })
@@ -187,7 +187,7 @@ app.on('browser-window-focus', function () {
   globalShortcut.register("F5", () => {}); // Disable Reload
 });
 
-app.on('browser-window-blur', function () {
-  globalShortcut.unregister('CommandOrControl+R');
-  globalShortcut.unregister('F5');
+app.on('browser-window-blur', function () { // unfocus
+  globalShortcut.unregister('CommandOrControl+R'); // Enable Reload (DevTools bugfix)
+  globalShortcut.unregister('F5'); // Enable Reload (DevTools bugfix)
 });

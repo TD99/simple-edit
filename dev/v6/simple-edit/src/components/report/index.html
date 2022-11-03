@@ -6,12 +6,12 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline' file:; style-src 'unsafe-inline' file:; font-src file:">
   <link rel="stylesheet" href="../../extensions/global.css">
   <script defer src="../../extensions/global.js"></script>
-  <title>Home</title>
+  <title>ReportErrorTool</title>
   <style>
     body {
       background-color: black;
+      animation: gradient 60s ease infinite;
       color: white;
-	    animation: gradient 15s ease infinite;
       font-weight: 400;
       font-size: medium;
       margin: 0 15px;
@@ -56,14 +56,27 @@
       background-color: rgba(0, 0, 0, 0.2);
       width: fit-content;
       padding: 10px;
+      gap: 10px;
+    }
+
+    textarea {
+      width: 70vw;
+      height: 70vh;
+      padding: 10px;
+      resize: none;
+      font-size: large;
+      background-color: rgba(255, 255, 255, 0.6);
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>Hi there!</h1>
-    <span>You're using the Preview (Virtual Browser) plugin.</span>
-    <i>You can either open a file or type a URL to proceed.</i>
+    <h1>Report a Bug</h1>
+    <form action="mailto:support@tcraft.ch" method="GET" enctype="text/plain">
+      <input type="hidden" name="subject" id="subject" value="Bug Report: SimpleEdit (v1.0.0)">
+      <textarea name="body" id="body" placeholder="Describe your problem... (You can upload files later)" cols="70" rows="20"></textarea><br>
+      <input type="submit" value="Send">
+    </form>
   </main>
 </body>
 </html>
