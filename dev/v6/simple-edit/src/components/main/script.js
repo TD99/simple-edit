@@ -5,7 +5,7 @@ if (navigator.userAgent.toLowerCase().indexOf('electron') <= -1 || !(window && w
 }
 
 // Require
-const { ipcRenderer, dialog } = require('electron');
+const { ipcRenderer } = require('electron');
 const ipc = ipcRenderer;
 
 var $ = require('jquery');
@@ -158,7 +158,7 @@ function setContext(config) {
                     key: 'o'
                 },
                 run() {
-                    simpleEdit.window.recent();
+                    simpleEdit.window.recent.show();
                 }
             },
             {
@@ -269,7 +269,7 @@ function setContext(config) {
                     ctrlKey: true,
                     key: 'v'
                 },
-                alreadyRegistered: false,
+                alreadyRegistered: true,
                 run() {
                     simpleEdit.editor.paste();
                 }
@@ -381,6 +381,16 @@ function setContext(config) {
                 run() {
                     simpleEdit.editor.endofline.change();
                 }
+            },
+            {
+                separator: true
+            },
+            {
+                name: "se-openPreview",
+                displayName: "Open Preview",
+                run() {
+                    changePreviewVisibility(true);
+                }
             }
         ],
         "Help": [
@@ -399,7 +409,7 @@ function setContext(config) {
             },
             {
                 name: "se-reloadWindow",
-                displayName: "Reload Window",
+                displayName: "Hard Reload",
                 run() {
                     simpleEdit.window.reload()
                 }
@@ -412,6 +422,13 @@ function setContext(config) {
                 displayName: "Key Mapping",
                 run() {
                     simpleEdit.window.keyMapping.show();
+                }
+            },
+            {
+                name: "se-bugReport",
+                displayName: "Report a Bug",
+                run() {
+                    simpleEdit.window.report.show();
                 }
             },
             {
@@ -527,29 +544,39 @@ function appendLang(target) {
     }
 }
 
-$(".search").change((e)=>{
+// Change of language <select>
+$(".langS").change((e)=>{
     appendLang(e.target);
 });
 
 // load languages in dropdown
 function loadLanguageList(list) {
-    $(".search").empty();
+    $(".langS").empty();
     list.forEach(e => {
         const defaultStr = (e.isDefault)?" selected":"";
-        $(".search").append('<option value="' + e.name + '" data-docsURL="' + e.docs + '" data-learnURL="' + e.learn + '"' + defaultStr + '>' + e.displayname + '</option>');
+        $(".langS").append('<option value="' + e.name + '" data-docsURL="' + e.docs + '" data-learnURL="' + e.learn + '"' + defaultStr + '>' + e.displayname + '</option>');
     });
-    appendLang(".search");
+    appendLang(".langS");
 }
 
-document.getElementById('virtualBrowser').addEventListener('did-finish-load', () => {
-    document.getElementById('previewTitle').textContent = document.getElementById('virtualBrowser').getTitle();
-    document.getElementById('previewURL').value = document.getElementById('virtualBrowser').getURL();
-});
+// load preview
+function loadPreview() {
+    $('#webviewDiv').append('<webview src="../preview/index.html" autosize="on" style="height: 100%; background-color: white;" id="virtualBrowser"></webview>');
 
+    // On preview finish load / url change
+    document.getElementById('virtualBrowser').addEventListener('did-finish-load', () => {
+        document.getElementById('previewTitle').textContent = document.getElementById('virtualBrowser').getTitle();
+        document.getElementById('previewURL').value = document.getElementById('virtualBrowser').getURL();
+    });
+}
 
-ipc.on('openFile', (evt, args) => {
-    console.log(args);
-});
+function changePreviewVisibility(isVisible) {
+    if (isVisible) {
+        $("#mainPreview").show();
+    } else {
+        $("#mainPreview").hide();
+    }
+}
 
 function changePreviewZoom(val) {
     if (!Number(val) || val < 0) return false;
@@ -557,39 +584,50 @@ function changePreviewZoom(val) {
     $("#mainPreview").css('height', 'calc(' + val + '%' + ' + ' + '22px');
 }
 
-$(".lineData").click(() => {
-    triggerMonacoEvt('editor.action.gotoLine', mainEditor);
+// Bottom Bar
+$(".lineData").on('click', () => {
+    simpleEdit.editor.gotoLine();
+});
+$(".spaceData").on('click', () => {
+    simpleEdit.editor.spacing.change.showMenu();
+});
+$(".eolData").on('click', () => {
+    simpleEdit.editor.endofline.change();
 });
 
-ipcRenderer.on('openFile', function (event, data) {
-    simpleEdit.file.open(data);
-});
+var topBarState = false;
 
-/* window.onbeforeunload = e => {
-    e.returnValue = false;
-}; */
+function switchTopBar(element) {
+    if (topBarState) {
+        $(element).children('.menuDropdownTitle').html($('<i class="fa-solid fa-bars"></i>'));
+        $("#mainMenuStrip").removeAttr('style');
+        $(".fileManageDiv").removeAttr('style');
+        topBarState = false;
+    } else {
+        $(element).children('.menuDropdownTitle').html($('<i class="fa-solid fa-x"></i>'));
+        $("#mainMenuStrip").attr('style', 'display: flex !important;');
+        $(".fileManageDiv ").attr('style', 'display: none !important;');
+        topBarState = true;
+    }
+}
 
 const simpleEdit = {
     file: {
         current: "",
         new() {
-            simpleEdit.window.create(); //dep
-
-            /* if (this.current) {
-            } else {
-                this.close();
-            } Later */ 
+            simpleEdit.window.create();
         },
-        open(file, detectFileExt=true) {
+        open(file, detectFileExt=false) {
             file = path.resolve(file);
 
             if (!fs.existsSync(file)) { return false; } // exists
             if (!fs.lstatSync(file).isFile()) { return false; } // isfile
 
             try {
-                fs.accessSync('example.txt', fs.constants.W_OK);
+                fs.accessSync(file, fs.constants.W_OK);
             } catch (err) {
                 console.log('Opening File in read-only: ' + file);
+                console.log(err);
                 simpleEdit.modal.open({
                     title: 'Read-Only',
                     content: 'The file you tried to open cannot be saved.',
@@ -602,7 +640,16 @@ const simpleEdit = {
             }
 
             if (this.current) {
-                
+                // fix in v2
+                simpleEdit.modal.open({
+                    title: 'Error while opening',
+                    content: 'Please close the current file or open a new Window to proceed.',
+                    buttons: [
+                        {
+                            text: 'OK'
+                        }
+                    ]
+                });
             } else {
                 const buffer = fs.readFileSync(file);
                 const content = buffer.toString();
@@ -612,24 +659,38 @@ const simpleEdit = {
                     simpleEdit.editor.language.registry.forEach(e => {
                         e.extensions.forEach(f => {
                             if('.' + f == ext) {
-                                changeLang(e.name, ".search");
+                                simpleEdit.editor.language.set(e.name); // Fix in v2 -- langS not compatible
                             }
                         });
                     });
                 }
+                document.getElementById('virtualBrowser').loadURL(file);
                 this.current = file;
-                $(".fileName").text(path.parse(this.current).base);
-                this.autoSave.setStatus(false); //dep
+                this.autoSave.setStatus(false);
+                simpleEdit.editor.ui.update();
+                simpleEdit.window.recent.add(file);
             }
         },
         openDlg() {
-            console.log("open Dlg"); //dep
+            ipc.send('openFileDlg');
         },
         save(file) {
             fs.writeFile(file, mainEditor.getValue(), function (err) {
-                if (err) throw err;
+                if (err) {
+                    simpleEdit.modal.open({
+                        title: 'Error while saving',
+                        content: err,
+                        buttons: [
+                            {
+                                text: 'OK'
+                            }
+                        ]
+                    });
+                    return false;
+                }
                 console.log("Saved successfully! (" + file + ")");
             });
+            document.getElementById('virtualBrowser').loadURL(file);
             this.current = file;
         },
         autoSave: {
@@ -646,26 +707,39 @@ const simpleEdit = {
         },
         save() {
             if (this.current) {
-                fs.writeFile(this.current, mainEditor.getValue(), function (err) {
-                    if (err) throw err;
-                    console.log("Saved successfully! (" + this.current + ")");
+                fs.writeFile(simpleEdit.file.current, mainEditor.getValue(), function (err) {
+                    if (err) {
+                        simpleEdit.modal.open({
+                            title: 'Error while saving',
+                            content: err,
+                            buttons: [
+                                {
+                                    text: 'OK'
+                                }
+                            ]
+                        });
+                        return false;
+                    }
+                    console.log("Saved successfully! (" + simpleEdit.file.current + ")");
+                    document.getElementById('virtualBrowser').loadURL(simpleEdit.file.current);
                 });
             } else {
+                console.log("Opening indirect SaveDialog.");
                 this.saveAs();
             }
         },
         saveAs() {
-
+            ipc.send('saveFileDlg');
         },
         close(force=false) {
-            if (!force && !confirm("Sure?")) return false; //dep
+            if (!force && !confirm("Are you sure you want to close this file?")) return false;
             this.current = "";
             mainEditor.setValue("");
             monaco.editor.setModelLanguage(mainEditor.getModel(), "plaintext");
-            $(".fileName").text("New Document");
-            this.autoSave.setStatus(false); //dep
+            simpleEdit.editor.ui.update();
+            this.autoSave.setStatus(false);
 
-            document.getElementById('virtualBrowser').loadURL(path.join(__dirname, '../preview/index.html'));
+            document.getElementById('virtualBrowser').loadURL(path.join(__dirname, '../preview/index.html')); // default page
             return true;
         }
     },
@@ -697,7 +771,6 @@ const simpleEdit = {
                 Object.keys(mainCtxMenu).forEach(k => {
                     mainCtxMenu[k].forEach(e => {
                         if (e.accelerator) {
-                            console.log(e)
                             let keyInscance = [];
                             if (e.accelerator.ctrlKey) keyInscance.push("CTRL");
                             if (e.accelerator.altKey) keyInscance.push("ALT");
@@ -705,7 +778,7 @@ const simpleEdit = {
                             keyInscance.push(e.accelerator.key.toUpperCase());
     
                             const comb = $("<div>");
-                            comb.append($("<span>", { text: e.displayName }));
+                            comb.append($("<span>", { text: e.displayName + ' - ' }));
                             comb.append($("<span>", { class: 'keyCombination', text: keyInscance.join(" + ") }));
     
                             content.append(comb);
@@ -720,12 +793,81 @@ const simpleEdit = {
         },
         about: {
             show() {
-                alert("about");
+                simpleEdit.modal.open({
+                    title: 'About simpleEdit',
+                    content: $('<webview src="../about/index.html" autosize="on" style="height: 50vh; width: 50vw;" id="aboutView"></webview>').get(0)
+                });
+            }
+        },
+        report: {
+            show() {
+                simpleEdit.modal.open({
+                    title: 'Report a bug',
+                    content: $('<webview src="../report/index.html" autosize="on" style="height: 50vh; width: 50vw;" id="reportView"></webview>').get(0)
+                });
             }
         },
         recent: {
+            add(file) {
+                try {
+                    const stor = (window.localStorage.getItem('recent'))?window.localStorage.getItem('recent').split('<,>'):[];
+                    if (!stor.includes(file)) {
+                        stor.push(file);
+                        const last5 = stor.slice(-5);
+                        window.localStorage.setItem('recent', last5.join('<,>'));
+                    }
+                } catch (e) {
+                    return e;
+                }
+            },
+            get() {
+                return (window.localStorage.getItem('recent') && window.localStorage.getItem('recent') != 'undefined')?window.localStorage.getItem('recent').split('<,>'):'';
+            },
+            clear() {
+                window.localStorage.removeItem('recent');
+            },
             show() {
-                alert("recent");
+                simpleEdit.modal.open({
+                    title: 'Recent files',
+                    buttons: [
+                        {
+                            text: simpleEdit.window.recent.get()[0],
+                            onclick() {
+                                simpleEdit.file.open(simpleEdit.window.recent.get()[0]);
+                            }
+                        },
+                        {
+                            text: simpleEdit.window.recent.get()[1],
+                            onclick() {
+                                simpleEdit.file.open(simpleEdit.window.recent.get()[1]);
+                            }
+                        },
+                        {
+                            text: simpleEdit.window.recent.get()[2],
+                            onclick() {
+                                simpleEdit.file.open(simpleEdit.window.recent.get()[2]);
+                            }
+                        },
+                        {
+                            text: simpleEdit.window.recent.get()[3],
+                            onclick() {
+                                simpleEdit.file.open(simpleEdit.window.recent.get()[3]);
+                            }
+                        },
+                        {
+                            text: simpleEdit.window.recent.get()[4],
+                            onclick() {
+                                simpleEdit.file.open(simpleEdit.window.recent.get()[4]);
+                            }
+                        },
+                        {
+                            text: 'Reset',
+                            onclick() {
+                                simpleEdit.window.recent.clear();
+                            }
+                        }
+                    ]
+                });
             }
         }
     },
@@ -798,6 +940,12 @@ const simpleEdit = {
             update() {
                 const pos = mainEditor.getPosition();
                 $(".lineData").text("Ln " + pos.lineNumber + ", Col " + pos.column);
+                $(".spaceData").text(simpleEdit.editor.spacing.get(true));
+                $(".eolData").text(simpleEdit.editor.endofline.get(true));
+
+                const fileTag = (simpleEdit.file.current)?path.parse(simpleEdit.file.current).base:"New Document";
+                $(".fileName").text(fileTag);
+                $(document).attr("title", fileTag);
             }
         },
         undo() {
@@ -879,12 +1027,6 @@ const simpleEdit = {
             ],
             set(lang) {
                 monaco.editor.setModelLanguage(mainEditor.getModel(), lang);
-            },
-            openDocs() {
-
-            },
-            openLearn() {
-
             }
         },
         gotoLine() {
@@ -974,7 +1116,6 @@ const simpleEdit = {
         }
     }
 }
-simpleEdit.security.warnConsole("Stop!", "Don't enter anything, unless you know what you're doing!");
 
 function init() {
     defineDefaultGEvt();
@@ -983,6 +1124,20 @@ function init() {
     loadContext("#mainMenuStrip");
     loadDropdownLogic();
     loadLanguageList(simpleEdit.editor.language.registry);
+    loadPreview();
+
+    simpleEdit.security.warnConsole("Stop!", "Don't enter anything, unless you know what you're doing!");
+    simpleEdit.editor.ui.update();
+
+    ipc.on('openFile', function (event, data) {
+        simpleEdit.file.open(data);
+    });
+
+    ipc.on('saveFileAd', function (event, data) {
+        simpleEdit.file.current = data;
+        simpleEdit.file.save(data);
+        simpleEdit.editor.ui.update();
+    });
 }
 
 init();

@@ -10,18 +10,6 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-// Quick Actions
-app.setUserTasks([
-  {
-    program: process.execPath,
-    arguments: '',
-    iconPath: process.execPath,
-    iconIndex: 0,
-    title: 'New Window',
-    description: 'Create a new window'
-  }
-]);
-
 const windows = new Set();
 const windowTemplates = {
   main: {
@@ -46,7 +34,7 @@ const windowTemplates = {
 const createWindow = async ({minWidth, minHeight, width, height, frame, transparent, webPreferences, file, type}) => {
   if (!type) type='none';
 
-  if (
+  if ( // Dev Environment
     process.env.NODE_ENV === 'development' ||
     process.env.DEBUG_PROD === 'true'
   ) {
@@ -84,7 +72,7 @@ const createWindow = async ({minWidth, minHeight, width, height, frame, transpar
         type: 'question',
         buttons: ['Yes', 'No'],
         title: 'Confirm',
-        message: 'Are you sure you want to quit?'
+        message: 'Are you sure you want to close this window?'
       });
     isCloseDlg = false;
     if (choice === 1) {
@@ -141,8 +129,22 @@ ipc.on('toggleDevTools', (event)=>{
   BrowserWindow.getFocusedWindow().webContents.toggleDevTools();
 });
 
-ipc.on('openFileDlg', (opt)=>{
-  dialog.showOpenDialog(opt);
+ipc.on('openFileDlg', (event)=>{
+  dialog.showOpenDialog({properties: ['openFile'] }).then(function (response) {
+    if (!response.canceled) {
+      // handle fully qualified file name
+      event.sender.send('openFile', response.filePaths[0]);
+    }
+  });
+});
+
+ipc.on('saveFileDlg', (event)=>{
+  dialog.showSaveDialog().then(function (response) {
+    if (!response.canceled) {
+      // handle fully qualified file name
+      event.sender.send('saveFileAd', response.filePath);
+    }
+  });
 });
 
 ipc.on('openExtURL', (event, data) => {

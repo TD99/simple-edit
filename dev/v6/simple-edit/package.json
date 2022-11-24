@@ -2,12 +2,13 @@
   "name": "simple-edit",
   "productName": "simple-edit",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "A lightweight editor",
   "main": "src/base/index.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
+    "makeDarwin": "electron-forge make --platform darwin",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\""
   },

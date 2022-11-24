@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>mainApp</title>
+    <title>New File</title>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; script-src 'unsafe-inline' file:; style-src 'unsafe-inline' file:; font-src file:">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,8 +13,13 @@
   <body>
     <div class="mainApp">
       <header class="topBar drag">
-        <div class="clearDiv">
+        <div class="clearDiv contextDiv">
           <img class="appIcon drag" style="margin-right: 8px;" src="../../assets/icons/icon.svg" alt="appIcon">
+          <div class="menuStrip drag">
+            <div class="menuDropdown" id="expand" onclick="switchTopBar(this);" style="display: none;">
+              <span class="menuDropdownTitle"><i class="fa-solid fa-bars"></i></span>
+            </div>
+          </div>
           <div class="menuStrip drag" id="mainMenuStrip"></div>
         </div>
         <div class="fileManageDiv drag">
@@ -23,9 +28,7 @@
             <input type="checkbox" class="switch" name="autoSave" id="autoSave" onchange="simpleEdit.file.autoSave.setStatus(this.checked);">
           </div>
           <div class="verticalDelimiter drag"></div>
-          <div class="menuDropdown">
-            <span class="menuDropdownTitle fileName">{fileName}</span>
-          </div>
+          <span class="fileName drag">{fileName}</span>
         </div>
         <div class="clearDiv">
           <div class="titleBarButtons" style="height: 30px;">
@@ -36,7 +39,7 @@
         </div>
       </header>
       <main>
-        <div id="mainPreview">
+        <div id="mainPreview" style="display: none;">
           <div class="virtualBrowserControls">
             <div class="clearDiv">
               <button onclick="document.getElementById('virtualBrowser').goBack();"><i class="fa-solid fa-arrow-left"></i></button>
@@ -62,21 +65,19 @@
               <button onclick="document.getElementById('virtualBrowser').setZoomFactor(1);"><i class="fa-solid fa-rotate-left"></i></button>
               <button onclick="document.getElementById('virtualBrowser').setZoomFactor(document.getElementById('virtualBrowser').getZoomFactor() + 0.05);"><i class="fa-solid fa-plus"></i></button>
               <button onclick="document.getElementById('virtualBrowser').openDevTools();"><i class="fa-solid fa-code"></i></button>
-              <button onclick="$('#mainPreview').hide();"><i class="fa-regular fa-x"></i></button>
+              <button onclick="changePreviewVisibility(false);"><i class="fa-regular fa-x"></i></button>
             </div>
           </div>
-          <div style="height: 100%; width: 100%; overflow: auto;">
-            <webview src="https://www.github.com/" autosize="on" style="height: 100%; background-color: white;" id="virtualBrowser"></webview>
+          <div id="webviewDiv" style="height: 100%; width: 100%; overflow: auto;">
           </div>
         </div>
         <div style="width: 100%; height: 100%; overflow: hidden;">
           <div id="mainEditor"></div>
         </div>
-        
       </main>
       <footer class="bottomBar">
         <div id="languageDiv">
-          <select class="langData search">
+          <select class="langData langS">
             <option>{langData}</option>
           </select>
           <i class="docsIcon fa-solid fa-book"></i>
@@ -85,7 +86,7 @@
         <div id="documentControlDiv">
           <button class="lineData" title="Goto Line">{lineData}</button>
           <button class="spaceData" title="Change Spacing">{spaceData}</button>
-          <span class="encodingData" title="Encoding">UTF-8</span>
+          <button class="encodingData" title="Encoding">UTF-8</button>
           <button class="eolData" title="Change End of Line Sequence">{eolData}</button>
         </div>
       </footer>

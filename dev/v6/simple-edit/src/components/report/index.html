@@ -14,7 +14,6 @@
       color: white;
       font-weight: 400;
       font-size: medium;
-      margin: 0 15px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -57,6 +56,7 @@
       width: fit-content;
       padding: 10px;
       gap: 10px;
+      overflow: auto;
     }
 
     textarea {
@@ -71,11 +71,11 @@
 </head>
 <body>
   <main>
-    <h1>Report a Bug</h1>
-    <form action="mailto:support@tcraft.ch" method="GET" enctype="text/plain">
+    <h1>Report an Error</h1>
+    <form>
       <input type="hidden" name="subject" id="subject" value="Bug Report: SimpleEdit (v1.0.0)">
       <textarea name="body" id="body" placeholder="Describe your problem... (You can upload files later)" cols="70" rows="20"></textarea><br>
-      <input type="submit" value="Send">
+      <button onclick="location.href = 'mailto:support@tcraft.ch?subject=Bug%20Report:%20SimpleEdit%20(v1.0.0)&body=' + encodeURI(document.getElementById('body').value)">Send</button>
     </form>
   </main>
 </body>

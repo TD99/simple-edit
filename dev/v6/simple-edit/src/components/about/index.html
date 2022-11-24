@@ -1,12 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline' file:; style-src 'unsafe-inline' file:; font-src file:">
+  <link rel="stylesheet" href="../../extensions/global.css">
+  <script defer src="../../extensions/global.js"></script>
+  <title>Home</title>
+  <style>
+    body {
+      background-color: rgba(103, 111, 134, 0.5);
+      color: white;
+      font-weight: 400;
+      font-size: medium;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: xx-large;
+    }
+
+    h2 {
+        margin: 5px 0;
+        font-weight: 500;
+        font-size: larger;
+    }
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 0;
+        background-color: black;
+        color: white;
+        width: 80vw;
+        padding: 10px;
+    }
+
+    li {
+      font-weight: 700;
+      font-size: large;
+      padding-left: 1em;
+      text-indent: -1em;
+    }
+
+    li::before {
+        content: '>';
+        padding-right: 5px;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      background-color: rgba(103, 111, 134, 0.8);
+      width: fit-content;
+      padding: 10px;
+      overflow: auto;
+    }
+  </style>
 </head>
 <body>
-    
+  <main>
+    <h1>simpleEdit</h1>
+    <h2>What is it?</h2>
+    <ul>
+        <li>simpleEdit is a lightweight code editor that features all your favourite functions from a regular IDE.</li>
+        <li>It's also beginner-friendly as it is not overloaded with functions that you don't need.</li>
+        <li>It's able to run on Windows, Linux and MacOS.</li>
+    </ul>
+    <br>
+    <h2>Libraries / Frameworks</h2>
+    <ul>
+        <li>ElectronJS</li>
+        <li>Monaco</li>
+        <li>FontAwesome</li>
+        <li>jQuery</li>
+    </ul>
+    <br>
+    <h2>Version</h2>
+    <ul>
+        <li>1.0.0</li>
+    </ul>
+    <br>
+    <h2>Author</h2>
+    <ul>
+        <li>Tim Dürr (tdu135585)</li>
+    </ul>
+    <br>
+    <h2>License</h2>
+    <ul>
+        <li>MIT</li>
+    </ul>
+  </main>
 </body>
 </html>
